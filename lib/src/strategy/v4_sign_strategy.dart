@@ -1,6 +1,6 @@
-import 'package:ali_yun_oss/src/config/config.dart';
-import 'package:ali_yun_oss/src/interfaces/sign_strategy.dart';
-import 'package:ali_yun_oss/src/strategy/v4_sign_utils.dart';
+import 'package:dart_aliyun_oss/src/config/config.dart';
+import 'package:dart_aliyun_oss/src/interfaces/sign_strategy.dart';
+import 'package:dart_aliyun_oss/src/strategy/v4_sign_utils.dart';
 
 /// 阿里云OSS V4版本签名策略实现
 ///

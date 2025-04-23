@@ -2,11 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:ali_yun_oss/src/config/config.dart';
-import 'package:ali_yun_oss/src/interfaces/service.dart';
-import 'package:ali_yun_oss/src/interfaces/sign_strategy.dart';
-import 'package:ali_yun_oss/src/strategy/strategy.dart';
-import 'package:ali_yun_oss/src/utils/utils.dart';
+import 'package:dart_aliyun_oss/src/config/config.dart';
+import 'package:dart_aliyun_oss/src/interfaces/service.dart';
+import 'package:dart_aliyun_oss/src/interfaces/sign_strategy.dart';
+import 'package:dart_aliyun_oss/src/strategy/strategy.dart';
+import 'package:dart_aliyun_oss/src/utils/utils.dart';
 
 import 'impl/abort_multipart_upload_impl.dart';
 import 'impl/complete_multipart_upload_impl.dart';

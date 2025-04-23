@@ -1,4 +1,4 @@
-import 'package:ali_yun_oss/ali_yun_oss.dart';
+import 'package:dart_aliyun_oss/dart_aliyun_oss.dart';
 import 'package:dio/dio.dart';
 import 'package:test/test.dart';
 

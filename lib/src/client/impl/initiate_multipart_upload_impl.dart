@@ -1,8 +1,8 @@
-import 'package:ali_yun_oss/src/client/client.dart';
-import 'package:ali_yun_oss/src/exceptions/exceptions.dart';
+import 'package:dart_aliyun_oss/src/client/client.dart';
+import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
 import 'package:dio/dio.dart';
-import 'package:ali_yun_oss/src/interfaces/service.dart';
-import 'package:ali_yun_oss/src/models/models.dart';
+import 'package:dart_aliyun_oss/src/interfaces/service.dart';
+import 'package:dart_aliyun_oss/src/models/models.dart';
 
 mixin InitiateMultipartUploadImpl on IOSSService {
   /// 初始化分片上传

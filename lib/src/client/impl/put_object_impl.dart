@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:ali_yun_oss/src/client/client.dart';
-import 'package:ali_yun_oss/src/exceptions/exceptions.dart';
+import 'package:dart_aliyun_oss/src/client/client.dart';
+import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
 import 'package:dio/dio.dart';
-import 'package:ali_yun_oss/src/interfaces/service.dart';
-import 'package:ali_yun_oss/src/models/models.dart';
+import 'package:dart_aliyun_oss/src/interfaces/service.dart';
+import 'package:dart_aliyun_oss/src/models/models.dart';
 
 mixin PutObjectImpl on IOSSService {
   /// 阿里云 OSS 对象上传实现

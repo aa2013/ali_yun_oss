@@ -1,8 +1,8 @@
-import 'package:ali_yun_oss/src/client/client.dart';
-import 'package:ali_yun_oss/src/exceptions/exceptions.dart';
+import 'package:dart_aliyun_oss/src/client/client.dart';
+import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
 import 'package:dio/dio.dart';
-import 'package:ali_yun_oss/src/interfaces/service.dart';
-import 'package:ali_yun_oss/src/models/models.dart';
+import 'package:dart_aliyun_oss/src/interfaces/service.dart';
+import 'package:dart_aliyun_oss/src/models/models.dart';
 
 /// GetObjectImpl 是阿里云 OSS 获取对象操作的实现
 ///

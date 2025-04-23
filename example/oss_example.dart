@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:ali_yun_oss/ali_yun_oss.dart';
+import 'package:dart_aliyun_oss/dart_aliyun_oss.dart';
 
 /// 将 OSSClient 初始化移到全局或 main 函数顶部，以便所有示例函数都能访问
 late final OSSClient oss;

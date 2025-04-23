@@ -3,7 +3,7 @@ library;
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:ali_yun_oss/src/exceptions/exceptions.dart';
+import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
 import 'package:dio/dio.dart';
 
 export 'lock.dart';

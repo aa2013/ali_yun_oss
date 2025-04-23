@@ -13,7 +13,7 @@
 
 ```yaml
 dependencies:
-  ali_yun_oss: ^1.0.0
+  dart_aliyun_oss: ^1.0.0
 ```
 
 然后运行:
@@ -27,7 +27,7 @@ dart pub get
 ### 初始化
 
 ```dart
-import 'package:ali_yun_oss/ali_yun_oss.dart';
+import 'package:dart_aliyun_oss/dart_aliyun_oss.dart';
 
 // 初始化OSS客户端
 final oss = OSSClient.init(

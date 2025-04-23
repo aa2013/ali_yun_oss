@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:ali_yun_oss/src/client/client.dart';
-import 'package:ali_yun_oss/src/exceptions/exceptions.dart';
+import 'package:dart_aliyun_oss/src/client/client.dart';
+import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
 import 'package:dio/dio.dart';
-import 'package:ali_yun_oss/src/interfaces/service.dart';
-import 'package:ali_yun_oss/src/models/models.dart';
+import 'package:dart_aliyun_oss/src/interfaces/service.dart';
+import 'package:dart_aliyun_oss/src/models/models.dart';
 
 /// 完成分片上传的实现类
 ///

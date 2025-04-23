@@ -1,4 +1,4 @@
-name: ali_yun_oss
+name: dart_aliyun_oss
 description: 阿里云对象存储服务(OSS)的Dart客户端SDK, 支持文件上传下载、分片上传等功能。
 version: 1.0.0
 homepage: https://github.com/lvyandev/ali_yun_oss

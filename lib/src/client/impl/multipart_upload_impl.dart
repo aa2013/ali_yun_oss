@@ -4,12 +4,12 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:ali_yun_oss/src/client/client.dart';
+import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dio/dio.dart';
-import 'package:ali_yun_oss/src/exceptions/exceptions.dart';
-import 'package:ali_yun_oss/src/interfaces/service.dart';
-import 'package:ali_yun_oss/src/models/models.dart';
-import 'package:ali_yun_oss/src/utils/utils.dart';
+import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
+import 'package:dart_aliyun_oss/src/interfaces/service.dart';
+import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dart_aliyun_oss/src/utils/utils.dart';
 
 mixin MultipartUploadImpl on IOSSService {
   /// 阿里云 OSS 分片上传实现
