@@ -1,0 +1,30 @@
+# Dart 相关
+.dart_tool/
+.packages
+.pub/
+build/
+pubspec.lock
+
+# IDE 相关
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 测试相关
+coverage/
+.test_coverage.dart
+
+# 示例下载目录
+example/downloaded/
+
+# 敏感信息和临时文件
+*.env
+*.log
+*.bak
+*.tmp

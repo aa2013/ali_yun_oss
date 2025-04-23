@@ -1,0 +1,31 @@
+# 测试相关文件
+test/downloaded/
+test/*.mp4
+test/*.pdf
+test/large_*
+
+# 开发工具和配置
+.github/
+.vscode/
+.idea/
+.dart_tool/
+.packages
+
+# 文档和示例中的大文件
+example/assets/large_file.bin
+
+# 其他不需要发布的文件
+*.log
+*.env
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+
+# 源代码控制
+.git/
+.gitignore
+
+# CI/CD 配置
+.travis.yml
+.gitlab-ci.yml

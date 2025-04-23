@@ -1,0 +1,31 @@
+name: ali_yun_oss
+description: 阿里云对象存储服务(OSS)的Dart客户端SDK, 支持文件上传下载、分片上传等功能。
+version: 1.0.0
+homepage: https://github.com/lvyandev/ali_yun_oss
+repository: https://github.com/lvyandev/ali_yun_oss
+issue_tracker: https://github.com/lvyandev/ali_yun_oss/issues
+
+# 许可证
+license: MIT
+
+# 关键词
+keywords:
+  - aliyun
+  - oss
+  - storage
+  - upload
+  - download
+  - multipart
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  dio: ^5.8.0+1
+  crypto: ^3.0.6
+  intl: ^0.20.2
+  convert: ^3.1.1
+
+dev_dependencies:
+  lints: ^5.1.1
+  test: ^1.25.15
