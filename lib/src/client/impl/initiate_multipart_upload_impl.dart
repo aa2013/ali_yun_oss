@@ -7,19 +7,19 @@ import 'package:dart_aliyun_oss/src/models/models.dart';
 mixin InitiateMultipartUploadImpl on IOSSService {
   /// 初始化分片上传
   ///
-  /// 开始一个分片上传过程，获取 Upload ID。该接口用于通知 OSS 初始化一个分片上传事件。
-  /// 
+  /// 开始一个分片上传过程,获取 Upload ID。该接口用于通知 OSS 初始化一个分片上传事件。
+  ///
   /// 主要功能：
   /// - 创建分片上传事件并返回全局唯一的 Upload ID
   /// - 支持自定义请求参数和请求头
   /// - 支持请求取消功能
-  /// 
+  ///
   /// 注意事项：
   /// - 初始化请求不会影响已存在的同名对象
   /// - 返回的 Upload ID 用于后续的分片上传、完成或取消操作
-  /// - 如果指定了加密请求头，后续的分片上传也会使用相同的加密方式
-  /// - 每个 Upload ID 都有生命周期，建议及时完成或取消上传
-  /// 
+  /// - 如果指定了加密请求头,后续的分片上传也会使用相同的加密方式
+  /// - 每个 Upload ID 都有生命周期,建议及时完成或取消上传
+  ///
   /// 使用示例：
   /// ```dart
   /// final response = await client.initiateMultipartUpload(
@@ -33,13 +33,13 @@ mixin InitiateMultipartUploadImpl on IOSSService {
   /// ```
   ///
   /// [fileKey] 要上传的 OSS 对象键
-  /// [params] 可选的请求参数 ([OSSRequestParams])，可用于指定：
+  /// [params] 可选的请求参数 ([OSSRequestParams]),可用于指定：
   ///   - bucketName: 自定义的 Bucket 名称
   ///   - options: 包含自定义请求头的选项
   ///   - cancelToken: 用于取消请求
   ///   - dateTime: 自定义签名时间
   ///   - isV1Signature: 是否使用 V1 签名
-  /// 返回一个包含 [InitiateMultipartUploadResult] 的 [Response]，其中包含：
+  /// 返回一个包含 [InitiateMultipartUploadResult] 的 [Response],其中包含：
   ///   - Bucket: 存储空间名称
   ///   - Key: 对象名称
   ///   - UploadId: 分片上传事件的唯一标识
@@ -63,14 +63,15 @@ mixin InitiateMultipartUploadImpl on IOSSService {
     }
 
     final client = this as OSSClient;
-    final String requestKey = 'init_${fileKey}_${DateTime.now().millisecondsSinceEpoch}';
-    
+    final String requestKey =
+        'init_${fileKey}_${DateTime.now().millisecondsSinceEpoch}';
+
     return client.requestHandler.executeRequest(
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
         final String bucket = params?.bucketName ?? client.config.bucketName;
-        
+
         // 使用 Uri.https 构建 URI
         final Uri uri = Uri.https(
           '$bucket.${client.config.endpoint}',

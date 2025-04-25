@@ -6,9 +6,9 @@ import 'package:dart_aliyun_oss/src/models/models.dart';
 
 /// 分片上传实现类
 ///
-/// 提供分片上传的核心功能，支持两种上传方式：
+/// 提供分片上传的核心功能,支持两种上传方式：
 /// 1. 内存数据上传：适用于小文件或已加载到内存的数据
-/// 2. 流式上传：适用于大文件，避免内存占用过高
+/// 2. 流式上传：适用于大文件,避免内存占用过高
 ///
 /// 主要特性：
 /// - 支持分片上传进度回调
@@ -35,7 +35,7 @@ mixin UploadPartImpl on IOSSService {
   /// [uploadId] [initiateMultipartUpload] 返回的 Upload ID
   /// [params] 可选的请求参数 ([OSSRequestParams])
   /// [onSendProgress] 分片上传进度回调
-  /// 返回一个 [Response]。成功时响应体为空，但 Headers 包含 ETag。
+  /// 返回一个 [Response]。成功时响应体为空,但 Headers 包含 ETag。
   @override
   Future<Response<dynamic>> uploadPart(
     String fileKey,
@@ -138,7 +138,7 @@ mixin UploadPartImpl on IOSSService {
     }
 
     final client = this as OSSClient;
-    // 优化requestKey生成方式，避免时间戳冲突
+    // 优化requestKey生成方式,避免时间戳冲突
     final String requestKey =
         'uploadPartStream_${fileKey}_${uploadId}_$partNumber';
 

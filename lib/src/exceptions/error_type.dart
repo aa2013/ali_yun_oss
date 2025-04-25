@@ -1,7 +1,7 @@
 /// 定义 OSS 操作可能遇到的错误类型
 ///
 /// 该枚举用于分类和标识阿里云OSS操作过程中可能出现的各种错误情况。
-/// 它在 [OSSException] 中被用于指示错误的类型，便于客户端代码进行错误处理和恢复。
+/// 它在 [OSSException] 中被用于指示错误的类型,便于客户端代码进行错误处理和恢复。
 ///
 /// 使用示例：
 /// ```dart
@@ -11,10 +11,10 @@
 ///   if (e is OSSException) {
 ///     switch (e.type) {
 ///       case OSSErrorType.accessDenied:
-///         print('访问被拒绝，请检查权限');
+///         print('访问被拒绝,请检查权限');
 ///         break;
 ///       case OSSErrorType.network:
-///         print('网络错误，请检查连接');
+///         print('网络错误,请检查连接');
 ///         break;
 ///       // 处理其他错误类型...
 ///     }
@@ -126,7 +126,7 @@ enum OSSErrorType {
   /// - 服务器资源不足
   /// - 服务器过载
   ///
-  /// 这类错误通常是临时的，可以通过重试来解决。
+  /// 这类错误通常是临时的,可以通过重试来解决。
   serverError,
 
   /// 签名错误
@@ -145,9 +145,9 @@ enum OSSErrorType {
 
   /// 未知错误
   ///
-  /// 当错误无法分类为其他已知类型时使用。这是一个通用的错误类型，用于捕获未预期的错误情况。
+  /// 当错误无法分类为其他已知类型时使用。这是一个通用的错误类型,用于捕获未预期的错误情况。
   ///
-  /// 当遇到此类错误时，应检查：
+  /// 当遇到此类错误时,应检查：
   /// - [OSSException.originalError] 以获取原始异常信息
   /// - [OSSException.message] 中的详细错误描述
   /// - 日志输出以获取更多上下文
@@ -163,7 +163,7 @@ enum OSSErrorType {
   /// - uploadId 无效或过期
   /// - 分片编号无效
   ///
-  /// 当使用 [multipartUpload] 方法时，如果任何分片上传失败，整个上传过程将被中止并抛出此错误。
+  /// 当使用 [multipartUpload] 方法时,如果任何分片上传失败,整个上传过程将被中止并抛出此错误。
   uploadPartFailed,
 
   // 可以根据需要添加更多具体的错误类型
@@ -171,50 +171,50 @@ enum OSSErrorType {
 
 /// 错误类型扩展方法
 ///
-/// 提供了一些实用的工具方法，用于处理和展示 [OSSErrorType] 枚举值。
+/// 提供了一些实用的工具方法,用于处理和展示 [OSSErrorType] 枚举值。
 extension OSSErrorTypeExtension on OSSErrorType {
   /// 获取错误类型的用户友好描述
   ///
-  /// 返回一个简洁的中文描述，适合在用户界面中显示。
+  /// 返回一个简洁的中文描述,适合在用户界面中显示。
   String get userFriendlyMessage {
     switch (this) {
       case OSSErrorType.abortMultipartFailed:
         return '取消分片上传失败';
       case OSSErrorType.accessDenied:
-        return '访问被拒绝，请检查权限设置';
+        return '访问被拒绝,请检查权限设置';
       case OSSErrorType.completeMultipartFailed:
         return '完成分片上传失败';
       case OSSErrorType.fileSystem:
-        return '文件系统错误，请检查文件路径和权限';
+        return '文件系统错误,请检查文件路径和权限';
       case OSSErrorType.initiateMultipartFailed:
         return '初始化分片上传失败';
       case OSSErrorType.invalidArgument:
-        return '请求参数错误，请检查输入';
+        return '请求参数错误,请检查输入';
       case OSSErrorType.invalidResponse:
-        return '服务器响应无效，请稍后重试';
+        return '服务器响应无效,请稍后重试';
       case OSSErrorType.network:
-        return '网络错误，请检查网络连接';
+        return '网络错误,请检查网络连接';
       case OSSErrorType.notFound:
         return '请求的资源不存在';
       case OSSErrorType.requestCancelled:
         return '请求已取消';
       case OSSErrorType.serverError:
-        return '服务器错误，请稍后重试';
+        return '服务器错误,请稍后重试';
       case OSSErrorType.signatureMismatch:
-        return '签名验证失败，请检查访问凭证';
+        return '签名验证失败,请检查访问凭证';
       case OSSErrorType.unknown:
-        return '未知错误，请查看日志获取详情';
+        return '未知错误,请查看日志获取详情';
       case OSSErrorType.uploadPartFailed:
-        return '上传分片失败，请重试';
+        return '上传分片失败,请重试';
     }
   }
 
   /// 判断错误是否可重试
   ///
-  /// 返回一个布尔值，表示该错误类型是否适合自动重试。
+  /// 返回一个布尔值,表示该错误类型是否适合自动重试。
   bool get isRetryable {
     switch (this) {
-      // 这些错误类型通常是临时的，可以重试
+      // 这些错误类型通常是临时的,可以重试
       case OSSErrorType.network:
       case OSSErrorType.serverError:
       case OSSErrorType.uploadPartFailed:
@@ -223,7 +223,7 @@ extension OSSErrorTypeExtension on OSSErrorType {
       case OSSErrorType.invalidResponse:
         return true;
 
-      // 这些错误类型通常是由于客户端问题或配置错误导致的，重试不太可能解决
+      // 这些错误类型通常是由于客户端问题或配置错误导致的,重试不太可能解决
       case OSSErrorType.accessDenied:
       case OSSErrorType.fileSystem:
       case OSSErrorType.invalidArgument:

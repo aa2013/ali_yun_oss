@@ -1,6 +1,6 @@
 # 阿里云OSS Dart SDK
 
-这是一个用于阿里云对象存储服务(OSS)的Dart客户端SDK，提供了简单易用的API来访问阿里云OSS服务。
+这是一个用于阿里云对象存储服务(OSS)的Dart客户端SDK,提供了简单易用的API来访问阿里云OSS服务。
 
 ## 功能特点
 
@@ -103,8 +103,8 @@ Future<void> multipartUpload() async {
 
 ## 注意事项
 
-- 请勿在生产代码中硬编码您的AccessKey信息，建议使用环境变量或其他安全的凭证管理方式。
-- 在使用分片上传时，如果上传过程被中断，请确保调用 `abortMultipartUpload` 方法清理未完成的分片上传。
+- 请勿在生产代码中硬编码您的AccessKey信息,建议使用环境变量或其他安全的凭证管理方式。
+- 在使用分片上传时,如果上传过程被中断,请确保调用 `abortMultipartUpload` 方法清理未完成的分片上传。
 
 ## 许可证
 

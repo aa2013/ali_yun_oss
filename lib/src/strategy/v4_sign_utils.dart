@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:intl/intl.dart';
+import 'package:dart_aliyun_oss/src/utils/date_formatter.dart';
 
 /// 阿里云OSS V4版本签名工具类
 ///
-/// 用于生成阿里云OSS V4版本的签名和授权头信息，符合阿里云OSS API规范。
-/// 该类实现了基于 HMAC-SHA256 算法的签名生成过程，提供比 V1 签名更安全的认证机制。
+/// 用于生成阿里云OSS V4版本的签名和授权头信息, 符合阿里云OSS API规范。
+/// 该类实现了基于 HMAC-SHA256 算法的签名生成过程, 提供比 V1 签名更安全的认证机制。
 ///
 /// V4签名算法的主要步骤：
 /// 1. 构建规范化的URI、查询参数和头部
@@ -17,16 +17,16 @@ import 'package:intl/intl.dart';
 /// 4. 生成派生密钥并计算 HMAC-SHA256 签名
 /// 5. 生成最终的授权头格式：`OSS4-HMAC-SHA256 Credential={AccessKeyId}/{Date}/{Region}/oss/aliyun_v4_request, Signature={Signature}`
 ///
-/// 与 V1 签名相比，V4 签名的主要优势：
+/// 与 V1 签名相比, V4 签名的主要优势：
 /// - 使用更安全的 HMAC-SHA256 算法
-/// - 包含区域信息，增强了安全性
+/// - 包含区域信息, 增强了安全性
 /// - 支持更多的头部参与签名
-/// - 签名过程更复杂，更难被破解
+/// - 签名过程更复杂, 更难被破解
 ///
-/// 注意：该类提供的是静态工具方法，不应该被实例化。
-/// 对于新应用，建议优先使用 V4 签名算法。
+/// 注意：该类提供的是静态工具方法, 不应该被实例化。
+/// 对于新应用, 建议优先使用 V4 签名算法。
 class AliOssV4SignUtils {
-  // 私有构造函数，防止实例化
+  // 私有构造函数, 防止实例化
   AliOssV4SignUtils._();
 
   /// OSS头部前缀常量
@@ -42,11 +42,11 @@ class AliOssV4SignUtils {
   /// 生成阿里云OSS V4签名所需的Authorization头
   ///
   /// 根据提供的参数生成符合阿里云OSS V4版本规范的授权头字符串。
-  /// 该方法实现了完整的V4签名过程，包括构建规范化请求、签名范围和计算签名。
+  /// 该方法实现了完整的V4签名过程, 包括构建规范化请求、签名范围和计算签名。
   ///
   /// 签名过程：
   /// 1. 处理时间参数并格式化为 ISO8601 格式
-  /// 2. 设置必要的请求头，如 x-oss-content-sha256 和 x-oss-date
+  /// 2. 设置必要的请求头, 如 x-oss-content-sha256 和 x-oss-date
   /// 3. 处理安全令牌（如果提供）
   /// 4. 构建规范化的URI、查询参数和头部
   /// 5. 处理额外需要签名的头部
@@ -60,16 +60,16 @@ class AliOssV4SignUtils {
   /// - [accessKeySecret] 阿里云访问密钥
   /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）
   /// - [region] 区域代码（如：cn-hangzhou）
-  /// - [method] HTTP方法（大写，如：PUT/GET）
+  /// - [method] HTTP方法（大写, 如：PUT/GET）
   /// - [bucket] OSS存储空间名称
   /// - [key] 对象键（文件路径）
   /// - [uri] 完整的请求URI（用于解析查询参数）
-  /// - [headers] 请求头集合，将被用于签名计算
-  /// - [additionalHeaders] 需要参与签名的额外头名称集合，默认为空集合
+  /// - [headers] 请求头集合, 将被用于签名计算
+  /// - [additionalHeaders] 需要参与签名的额外头名称集合, 默认为空集合
   /// - [securityToken] 安全令牌（STS临时凭证需要）
-  /// - [dateTime] 指定请求时间（可选，默认为当前时间）
+  /// - [dateTime] 指定请求时间（可选, 默认为当前时间）
   ///
-  /// 返回完整的授权头字符串，格式为 `OSS4-HMAC-SHA256 Credential={AccessKeyId}/{Date}/{Region}/oss/aliyun_v4_request, Signature={Signature}`
+  /// 返回完整的授权头字符串, 格式为 `OSS4-HMAC-SHA256 Credential={AccessKeyId}/{Date}/{Region}/oss/aliyun_v4_request, Signature={Signature}`
   ///
   /// 示例：
   /// ```dart
@@ -99,13 +99,17 @@ class AliOssV4SignUtils {
     String? securityToken,
     DateTime? dateTime,
   }) {
-    // 创建headers的副本，避免修改原始map
+    // 创建headers的副本, 避免修改原始map
     final Map<String, dynamic> headersToSign = <String, dynamic>{...headers};
+    // 把_defaultSignHeaders添加到headersToSign中
+    for (final String key in _defaultSignHeaders) {
+      headersToSign[key] = headers[key];
+    }
 
     // 1. 处理时间相关参数
     final DateTime now = dateTime ?? DateTime.now().toUtc();
-    final String signDate = DateFormat('yyyyMMdd').format(now);
-    final String signTime = '${DateFormat('yyyyMMddTHHmmss').format(now)}Z';
+    final String signDate = DateFormatter.formatYYYYMMDD(now);
+    final String signTime = '${DateFormatter.formatYYYYMMDDTHHMMSS(now)}Z';
 
     // 2. 设置必要的请求头
     headersToSign['x-oss-content-sha256'] = 'UNSIGNED-PAYLOAD';
@@ -117,7 +121,11 @@ class AliOssV4SignUtils {
     }
 
     // 4. 构建规范请求组件
-    final String canonicalUri = _buildCanonicalUri(bucket, key);
+    final String canonicalUri = _buildCanonicalUri(
+      bucket,
+      key,
+      isForSignedUrl: false,
+    );
     final String canonicalQuery = _buildCanonicalQuery(uri);
     final String canonicalHeaders = _buildCanonicalHeaders(
       headersToSign,
@@ -168,12 +176,12 @@ class AliOssV4SignUtils {
   /// 生成包含签名的完整HTTP请求头
   ///
   /// 根据提供的参数生成包含阿里云OSS V4签名的完整HTTP请求头。
-  /// 该方法不仅生成授权头，还会处理其他必要的头部，如日期、主机和内容哈希等。
+  /// 该方法不仅生成授权头, 还会处理其他必要的头部, 如日期、主机和内容哈希等。
   ///
   /// 处理流程：
-  /// 1. 创建原始头部的副本，避免修改原始数据
+  /// 1. 创建原始头部的副本, 避免修改原始数据
   /// 2. 处理时间参数并格式化为 ISO8601 格式
-  /// 3. 更新标准请求头，如 x-oss-date、Host、x-oss-content-sha256 和 Date
+  /// 3. 更新标准请求头, 如 x-oss-date、Host、x-oss-content-sha256 和 Date
   /// 4. 处理安全令牌（如果提供）
   /// 5. 调用 [signature] 方法生成授权头
   /// 6. 将授权头添加到结果头部中并返回
@@ -183,16 +191,16 @@ class AliOssV4SignUtils {
   /// - [accessKeySecret] 阿里云访问密钥
   /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）
   /// - [region] 区域代码（如：cn-hangzhou）
-  /// - [method] HTTP方法（大写，如：PUT/GET）
+  /// - [method] HTTP方法（大写, 如：PUT/GET）
   /// - [bucket] OSS存储空间名称
   /// - [key] 对象键（文件路径）
   /// - [uri] 完整的请求URI
-  /// - [headers] 原始请求头集合，将被扩展并签名
-  /// - [additionalHeaders] 需要参与签名的额外头名称集合，默认为空集合
+  /// - [headers] 原始请求头集合, 将被扩展并签名
+  /// - [additionalHeaders] 需要参与签名的额外头名称集合, 默认为空集合
   /// - [securityToken] 安全令牌（STS临时凭证需要）
-  /// - [dateTime] 指定请求时间（可选，默认为当前时间）
+  /// - [dateTime] 指定请求时间（可选, 默认为当前时间）
   ///
-  /// 返回包含完整签名头部的Map，可直接用于 HTTP 请求
+  /// 返回包含完整签名头部的Map, 可直接用于 HTTP 请求
   ///
   /// 示例：
   /// ```dart
@@ -231,12 +239,12 @@ class AliOssV4SignUtils {
     String? securityToken,
     DateTime? dateTime,
   }) {
-    // 创建headers的副本，避免修改原始map
+    // 创建headers的副本, 避免修改原始map
     final Map<String, dynamic> result = <String, dynamic>{...headers};
 
     // 1. 处理时间相关参数
     final DateTime now = dateTime ?? DateTime.now().toUtc();
-    final String signTime = '${DateFormat('yyyyMMddTHHmmss').format(now)}Z';
+    final String signTime = '${DateFormatter.formatYYYYMMDDTHHMMSS(now)}Z';
 
     // 2. 更新标准请求头
     result['x-oss-date'] = signTime;
@@ -298,102 +306,186 @@ class AliOssV4SignUtils {
 
   /// 构建规范URI
   ///
-  /// 格式为: /bucket/object，确保正确编码
-  static String _buildCanonicalUri(String bucket, String key) {
+  /// 根据使用场景构建不同格式的规范URI：
+  /// - 对于签名URL：格式为 /object, 不包含 bucket 名称
+  /// - 对于请求头签名：格式为 /bucket/object, 包含 bucket 名称
+  ///
+  /// 参数：
+  /// - [bucket] 存储空间名称
+  /// - [key] 对象键（文件路径）
+  /// - [isForSignedUrl] 是否用于生成签名URL, 默认为false
+  ///
+  /// 返回编码后的规范URI字符串
+  static String _buildCanonicalUri(
+    String bucket,
+    String key, {
+    bool isForSignedUrl = false,
+  }) {
+    // 验证参数
+    if (bucket.isEmpty) {
+      throw ArgumentError('bucket 不能为空');
+    }
+
+    // 构建路径
     final StringBuffer path = StringBuffer('/');
 
-    if (bucket.isNotEmpty) {
+    // 根据使用场景决定是否包含 bucket 名称
+    if (!isForSignedUrl) {
       path.write('$bucket/');
     }
 
+    // 添加对象键（如果有）
     if (key.isNotEmpty) {
-      // 编码key但保留路径分隔符
-      path.write(Uri.encodeComponent(key).replaceAll('%2F', '/'));
+      // 编码 key 但保留路径分隔符
+      final String encodedKey = Uri.encodeComponent(key).replaceAll('%2F', '/');
+      path.write(encodedKey);
     }
 
     // 确保没有重复的斜杠
-    return path.toString().replaceAll('//', '/');
+    final String result = path.toString();
+    return result.contains('//') ? result.replaceAll('//', '/') : result;
   }
 
   /// 构建规范查询字符串
   ///
-  /// 按照字典序排序参数，并正确编码
+  /// 按照字典序排序参数, 并正确编码
+  ///
+  /// 参数：
+  /// - [uri] 包含查询参数的 URI 对象
+  ///
+  /// 返回格式化后的规范查询字符串, 格式为 key1=value1&key2=value2
   static String _buildCanonicalQuery(Uri uri) {
-    final List<String> params = <String>[];
+    // 如果没有查询参数, 直接返回空字符串
     final Map<String, List<String>> queryParams = uri.queryParametersAll;
-
     if (queryParams.isEmpty) {
       return '';
     }
+
+    final List<String> params = <String>[];
 
     // 按字典序排序参数名
     final List<String> sortedKeys = queryParams.keys.toList()..sort();
 
     for (final String key in sortedKeys) {
       final String encodedKey = Uri.encodeQueryComponent(key);
-      // 创建一个可变副本再排序
-      final List<String> values = List<String>.from(queryParams[key] ?? []);
-      values.sort(); // 对可变副本进行排序
 
+      // 获取参数值并排序
+      final List<String> values = List<String>.from(queryParams[key] ?? [])
+        ..sort();
+
+      // 处理每个值
       for (final String value in values) {
         final String encodedValue =
             value.isEmpty ? '' : Uri.encodeQueryComponent(value);
-        params.add(
-          encodedValue.isEmpty ? encodedKey : '$encodedKey=$encodedValue',
-        );
+
+        // 构建参数字符串
+        if (encodedValue.isEmpty) {
+          params.add(encodedKey);
+        } else {
+          params.add('$encodedKey=$encodedValue');
+        }
       }
     }
 
+    // 连接所有参数
     return params.join('&');
   }
 
   /// 构建规范头列表
   ///
-  /// 按照字典序排序头部，并格式化为key:value形式
+  /// 按照字典序排序头部, 并格式化为key:value形式
+  ///
+  /// 参数：
+  /// - [headers] 请求头集合
+  /// - [additionalHeaders] 需要参与签名的额外头名称集合
+  ///
+  /// 返回格式化后的规范头列表字符串, 每行一个头部, 格式为 key:value, 末尾有换行符
   static String _buildCanonicalHeaders(
     Map<String, dynamic> headers,
     Set<String> additionalHeaders,
   ) {
-    final List<String> headerList = <String>[];
-    final Map<String, dynamic> lowerHeaders = headers.map(
-      (k, v) => MapEntry(k.toLowerCase(), v),
-    );
+    // 转换所有键为小写, 以符合规范
+    final Map<String, String> lowerHeaders = <String, String>{};
+    headers.forEach((key, value) {
+      lowerHeaders[key.toLowerCase()] = (value?.toString() ?? '').trim();
+    });
 
     // 合并默认头和额外头
-    final Set<String> allSignHeaders = {
+    final Set<String> allSignHeaders = <String>{
       ...additionalHeaders,
       ..._defaultSignHeaders,
     };
 
-    for (final String header in allSignHeaders) {
-      final String value = lowerHeaders[header]?.toString().trim() ?? '';
-      headerList.add('$header:$value');
-    }
+    // 构建规范头列表
+    final List<String> headerList = <String>[];
 
+    // 只添加存在于 lowerHeaders 中的头部
+    lowerHeaders.forEach((String key, String value) {
+      if (allSignHeaders.contains(key)) {
+        headerList.add('$key:$value');
+      }
+    });
+
+    // 按字典序排序
     headerList.sort();
-    return '${headerList.join('\n')}\n'; // 必须保留最后的换行符
+
+    // 返回格式化后的字符串, 末尾必须有换行符
+    return '${headerList.join('\n')}\n';
   }
 
   /// 构建待签名字符串
   ///
   /// 包含算法标识、时间戳、作用域和请求哈希
+  ///
+  /// 参数：
+  /// - [iso8601Time] ISO8601 格式的时间戳
+  /// - [scope] 签名范围, 格式为 {date}/{region}/oss/aliyun_v4_request
+  /// - [canonicalRequest] 规范请求字符串
+  ///
+  /// 返回格式化后的待签名字符串, 格式为：
+  /// OSS4-HMAC-SHA256\n
+  /// {iso8601Time}\n
+  /// {scope}\n
+  /// {hashedRequest}
   static String _buildStringToSign({
     required String iso8601Time,
     required String scope,
     required String canonicalRequest,
   }) {
     // 计算规范请求的SHA256哈希
-    final String hashedRequest = hex.encode(
-      sha256.convert(utf8.encode(canonicalRequest)).bytes,
-    );
+    final List<int> requestBytes = utf8.encode(canonicalRequest);
+    final Digest digest = sha256.convert(requestBytes);
+    final String hashedRequest = hex.encode(digest.bytes);
 
-    // 构建并返回待签名字符串
-    return ['OSS4-HMAC-SHA256', iso8601Time, scope, hashedRequest].join('\n');
+    // 构建待签名字符串的组成部分
+    final List<String> components = [
+      'OSS4-HMAC-SHA256', // 算法标识
+      iso8601Time, // 时间戳
+      scope, // 签名范围
+      hashedRequest, // 请求哈希
+    ];
+
+    // 连接各部分, 使用换行符分隔
+    return components.join('\n');
   }
 
   /// 计算V4签名
   ///
   /// 使用派生密钥进行HMAC-SHA256签名
+  /// 根据阿里云文档, V4 签名的密钥派生过程为：
+  /// 1. 生成初始密钥：aliyun_v4$accessKeySecret
+  /// 2. 派生日期密钥：HMAC-SHA256(初始密钥, date)
+  /// 3. 派生区域密钥：HMAC-SHA256(日期密钥, region)
+  /// 4. 派生服务密钥：HMAC-SHA256(区域密钥, "oss")
+  /// 5. 派生签名密钥：HMAC-SHA256(服务密钥, "aliyun_v4_request")
+  ///
+  /// 参数：
+  /// - [accessKeySecret] 阿里云访问密钥
+  /// - [date] 签名日期, 格式为 YYYYMMDD
+  /// - [region] 区域代码（如：cn-hangzhou）
+  /// - [stringToSign] 待签名字符串
+  ///
+  /// 返回十六进制编码的签名字符串
   static String _calculateV4Signature({
     required String accessKeySecret,
     required String date,
@@ -404,31 +496,194 @@ class AliOssV4SignUtils {
     final List<int> v4Key = utf8.encode('aliyun_v4$accessKeySecret');
 
     // 2. 派生日期密钥
-    final List<int> signingDate =
-        Hmac(sha256, v4Key).convert(utf8.encode(date)).bytes;
+    final List<int> signingDate = _hmacSha256(v4Key, date);
 
     // 3. 派生区域密钥
-    final List<int> signingRegion =
-        Hmac(sha256, signingDate).convert(utf8.encode(region)).bytes;
+    final List<int> signingRegion = _hmacSha256(signingDate, region);
 
     // 4. 派生服务密钥
-    final List<int> signingOss =
-        Hmac(sha256, signingRegion).convert(utf8.encode('oss')).bytes;
+    final List<int> signingOss = _hmacSha256(signingRegion, 'oss');
 
     // 5. 派生签名密钥
-    final List<int> signingKey =
-        Hmac(
-          sha256,
-          signingOss,
-        ).convert(utf8.encode('aliyun_v4_request')).bytes;
+    final List<int> signingKey = _hmacSha256(signingOss, 'aliyun_v4_request');
 
     // 6. 计算最终签名
-    final Digest signature = Hmac(
-      sha256,
-      signingKey,
-    ).convert(utf8.encode(stringToSign));
+    final List<int> signatureBytes = _hmacSha256(signingKey, stringToSign);
 
     // 7. 返回十六进制编码的签名
-    return hex.encode(signature.bytes);
+    return hex.encode(signatureBytes);
+  }
+
+  /// 辅助方法：计算 HMAC-SHA256
+  ///
+  /// 使用给定的密钥对消息进行 HMAC-SHA256 计算
+  ///
+  /// 参数：
+  /// - [key] 密钥字节数组
+  /// - [message] 待计算的消息字符串
+  ///
+  /// 返回计算结果的字节数组
+  static List<int> _hmacSha256(List<int> key, String message) {
+    return Hmac(sha256, key).convert(utf8.encode(message)).bytes;
+  }
+
+  /// 生成包含签名的URL
+  ///
+  /// 根据提供的参数生成包含阿里云OSS V4签名的URL。
+  /// 该方法将签名信息作为URL的查询参数,可以直接用于访问OSS资源。
+  ///
+  /// 参数：
+  /// - [accessKeyId] 阿里云访问密钥ID
+  /// - [accessKeySecret] 阿里云访问密钥
+  /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）
+  /// - [region] 区域代码（如：cn-hangzhou）
+  /// - [method] HTTP方法（大写, 如：PUT/GET）
+  /// - [bucket] OSS存储空间名称
+  /// - [key] 对象键（文件路径）
+  /// - [expires] 签名过期时间（秒）, 默认3600秒
+  /// - [headers] 请求头集合, 将被用于签名计算
+  /// - [additionalHeaders] 需要参与签名的额外头名称集合, 默认为空集合
+  /// - [securityToken] 安全令牌（STS临时凭证需要）
+  /// - [dateTime] 指定请求时间（可选, 默认为当前时间）
+  ///
+  /// 返回包含签名的完整URL
+  ///
+  /// 示例：
+  /// ```dart
+  /// final url = AliOssV4SignUtils.signatureUrl(
+  ///   accessKeyId: 'your-access-key-id',
+  ///   accessKeySecret: 'your-access-key-secret',
+  ///   endpoint: 'oss-cn-hangzhou.aliyuncs.com',
+  ///   region: 'cn-hangzhou',
+  ///   method: 'GET',
+  ///   bucket: 'example-bucket',
+  ///   key: 'example.txt',
+  /// );
+  /// ```
+  static Uri signatureUri({
+    required String accessKeyId,
+    required String accessKeySecret,
+    required String endpoint,
+    required String region,
+    required String method,
+    required String bucket,
+    required String key,
+    int expires = 3600,
+    Map<String, dynamic>? headers,
+    Set<String>? additionalHeaders,
+    String? securityToken,
+    DateTime? dateTime,
+  }) {
+    // 1. 验证参数
+    if (bucket.isEmpty) {
+      throw ArgumentError('bucket 不能为空');
+    }
+    if (key.isEmpty) {
+      throw ArgumentError('key 不能为空');
+    }
+    if (method.isEmpty) {
+      throw ArgumentError('method 不能为空');
+    }
+    if (region.isEmpty) {
+      throw ArgumentError('region 不能为空, V4 签名必须指定区域');
+    }
+    if (expires < 1) {
+      throw ArgumentError('expires 必须大于 0');
+    }
+
+    // 2. 处理时间相关参数
+    final DateTime now = dateTime ?? DateTime.now().toUtc();
+    final String signDate = DateFormatter.formatYYYYMMDD(now);
+    final String signTime = '${DateFormatter.formatYYYYMMDDTHHMMSS(now)}Z';
+
+    // 3. 构建基础URL
+    final String host = '$bucket.$endpoint';
+    final String path = '/$key';
+    final Uri baseUri = Uri.parse('https://$host$path');
+
+    // 4. 构建规范URI（用于签名计算）
+    // 根据官方Java Demo, 规范URI的格式应该是 /{bucket}/{key}
+    final String canonicalUri = '/$bucket/$key';
+
+    // 5. 准备请求头
+    headers ??= <String, dynamic>{};
+    headers['host'] = host; // 确保 host 头部存在
+
+    // 6. 构建查询参数
+    final Map<String, String> queryParams = {
+      'x-oss-credential':
+          '$accessKeyId/$signDate/$region/oss/aliyun_v4_request',
+      'x-oss-date': signTime,
+      'x-oss-expires': expires.toString(),
+      'x-oss-signature-version': 'OSS4-HMAC-SHA256',
+    };
+
+    // 添加额外头部参数（如果有）
+    additionalHeaders ??= <String>{'host'};
+    if (additionalHeaders.isNotEmpty) {
+      queryParams['x-oss-additional-headers'] = additionalHeaders.join(';');
+    }
+
+    // 添加安全令牌（如果有）
+    if (securityToken != null && securityToken.isNotEmpty) {
+      queryParams['x-oss-security-token'] = securityToken;
+    }
+
+    // 5. 构建规范请求
+    // 根据阿里云文档和错误信息, 规范请求的格式应该是：
+    // <HTTPMethod>\n<CanonicalURI>\n<CanonicalQueryString>\n<CanonicalHeaders>\n<SignedHeaders>\n<HashedPayload>
+
+    // 5.1 构建规范查询字符串
+    final String canonicalQueryString = _buildCanonicalQuery(
+      Uri(queryParameters: queryParams),
+    );
+
+    // 5.2 构建规范头部
+    final String canonicalHeaders = _buildCanonicalHeaders(
+      headers,
+      additionalHeaders,
+    );
+
+    // 5.3 构建签名头部列表
+    final List<String> addHeaders =
+        additionalHeaders.where((e) => !_isDefaultSignHeader(e)).toList()
+          ..sort();
+    final String additionalHeadersString = addHeaders.join(';');
+
+    // 5.4 获取负载哈希值
+    final String hashedPayload =
+        headers['x-oss-content-sha256'] ?? 'UNSIGNED-PAYLOAD';
+
+    // 5.5 组合构建规范请求
+    final String canonicalRequest = [
+      method.toUpperCase(), // HTTP方法
+      canonicalUri, // 规范URI
+      canonicalQueryString, // 规范查询字符串
+      canonicalHeaders, // 规范头部
+      additionalHeadersString, // 签名头部列表
+      hashedPayload, // 负载哈希值
+    ].join('\n');
+
+    // 6. 构建待签名字符串
+    final String scope = '$signDate/$region/oss/aliyun_v4_request';
+    final String stringToSign = _buildStringToSign(
+      iso8601Time: signTime,
+      scope: scope,
+      canonicalRequest: canonicalRequest,
+    );
+
+    // 7. 计算签名
+    final String signature = _calculateV4Signature(
+      accessKeySecret: accessKeySecret,
+      date: signDate,
+      region: region,
+      stringToSign: stringToSign,
+    );
+
+    // 8. 添加签名到查询参数
+    queryParams['x-oss-signature'] = signature;
+
+    // 9. 构建并返回最终URL
+    return baseUri.replace(queryParameters: queryParams);
   }
 }

@@ -8,7 +8,7 @@ mixin ListMultipartUploadsImpl on IOSSService {
   /// 列出所有进行中的分片上传事件
   ///
   /// 获取指定 Bucket 下所有未完成的分片上传任务。
-  /// 该接口支持分页查询和条件过滤，可用于监控和管理分片上传任务。
+  /// 该接口支持分页查询和条件过滤,可用于监控和管理分片上传任务。
   ///
   /// 主要功能：
   /// - 列出所有未完成的分片上传任务
@@ -19,14 +19,14 @@ mixin ListMultipartUploadsImpl on IOSSService {
   ///
   /// 注意事项：
   /// - 返回的结果按照 Key 和 UploadId 排序
-  /// - 如果有大量上传任务，建议使用分页参数
-  /// - 如果指定了 delimiter，将返回 CommonPrefixes
+  /// - 如果有大量上传任务,建议使用分页参数
+  /// - 如果指定了 delimiter,将返回 CommonPrefixes
   /// - 默认最多返回 1000 个上传任务
   ///
   /// [delimiter] 用于分组的定界符
-  /// [encodingType] 响应体编码方式，支持 url 编码
+  /// [encodingType] 响应体编码方式,支持 url 编码
   /// [keyMarker] 列出对象的起始位置
-  /// [maxUploads] 返回的最大上传事件数量，默认 1000
+  /// [maxUploads] 返回的最大上传事件数量,默认 1000
   /// [prefix] 过滤对象键的前缀
   /// [uploadIdMarker] 列出上传事件的起始 Upload ID
   /// [params] 可选的请求参数 ([OSSRequestParams])
@@ -87,7 +87,7 @@ mixin ListMultipartUploadsImpl on IOSSService {
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'GET',
           bucketName: params?.bucketName,
-          fileKey: '', // 操作针对 Bucket，fileKey 为空
+          fileKey: '', // 操作针对 Bucket,fileKey 为空
           uri: uri,
           contentLength: null, // GET 请求无 Content-Length
           baseHeaders: baseHeaders,

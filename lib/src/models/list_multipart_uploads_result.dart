@@ -5,11 +5,11 @@ import 'upload_info.dart';
 /// 该类表示调用 ListMultipartUploads 操作后阿里云OSS返回的结果。
 /// 它包含了当前正在进行的分片上传任务的列表及其相关元数据。
 ///
-/// 该类主要用于管理和监控分片上传任务，帮助开发者识别未完成的上传任务，
+/// 该类主要用于管理和监控分片上传任务,帮助开发者识别未完成的上传任务,
 /// 以便继续或清理这些任务。它还支持分页查询大量的分片上传任务。
 ///
 /// 主要应用场景：
-/// - 查找长时间未完成的分片上传任务，以便清理占用的存储空间
+/// - 查找长时间未完成的分片上传任务,以便清理占用的存储空间
 /// - 恢复因网络中断或应用程序崩溃而未完成的上传任务
 /// - 监控当前正在进行的分片上传任务的状态
 /// - 实现分页浏览大量的分片上传任务
@@ -35,7 +35,7 @@ import 'upload_info.dart';
 ///   }
 /// }
 ///
-/// // 如果结果被截断，继续获取下一页
+/// // 如果结果被截断,继续获取下一页
 /// if (result.isTruncated) {
 ///   final nextPageResult = await ossClient.listMultipartUploads(
 ///     keyMarker: result.nextKeyMarker,
@@ -52,36 +52,36 @@ class ListMultipartUploadsResult {
 
   /// 公共前缀列表
   ///
-  /// 当请求中指定了 [delimiter] 参数时，返回结果会将具有相同前缀（如同一目录下）的对象分组。
+  /// 当请求中指定了 [delimiter] 参数时,返回结果会将具有相同前缀（如同一目录下）的对象分组。
   /// 这个列表包含了这些公共前缀（目录路径）。
-  /// 如果请求中没有指定 [delimiter]，或者没有公共前缀，则这个列表为空。
+  /// 如果请求中没有指定 [delimiter],或者没有公共前缀,则这个列表为空。
   final List<String> commonPrefixes;
 
   /// 目录分隔符
   ///
-  /// 用于分组对象的字符，通常使用斜杠字符 '/'。
-  /// 当指定该参数时，OSS会将同一目录下的对象当作一个组，并在 [commonPrefixes] 中返回目录名称。
-  /// 如果请求中没有指定该参数，则为 null。
+  /// 用于分组对象的字符,通常使用斜杠字符 '/'。
+  /// 当指定该参数时,OSS会将同一目录下的对象当作一个组,并在 [commonPrefixes] 中返回目录名称。
+  /// 如果请求中没有指定该参数,则为 null。
   final String? delimiter;
 
   /// 编码类型
   ///
   /// 指定响应中返回的内容的编码方式。
-  /// 当请求中指定了 encodingType 参数时（如 'url'），这里会返回相应的编码类型。
-  /// 如果请求中未指定，则为 null。
+  /// 当请求中指定了 encodingType 参数时（如 'url'）,这里会返回相应的编码类型。
+  /// 如果请求中未指定,则为 null。
   final String? encodingType;
 
   /// 列表是否被截断
   ///
   /// 指示返回的结果是否被截断（即还有更多的分片上传任务未返回）。
-  /// - true: 还有更多的分片上传任务未返回，可以使用 [nextKeyMarker] 和 [nextUploadIdMarker] 继续查询
+  /// - true: 还有更多的分片上传任务未返回,可以使用 [nextKeyMarker] 和 [nextUploadIdMarker] 继续查询
   /// - false: 所有的分片上传任务已经返回
   final bool isTruncated;
 
   /// 列表的起始对象位置
   ///
   /// 本次请求中指定的 keyMarker 参数值。
-  /// 如果请求中没有指定该参数，则为 null。
+  /// 如果请求中没有指定该参数,则为 null。
   final String? keyMarker;
 
   /// 返回的最大分片上传任务数量
@@ -92,32 +92,32 @@ class ListMultipartUploadsResult {
 
   /// 下一个请求的对象标记值
   ///
-  /// 如果返回的结果被截断（[isTruncated] 为 true），这个值表示下一次请求应该使用的 keyMarker 参数值。
-  /// 如果结果未被截断，则为 null。
+  /// 如果返回的结果被截断（[isTruncated] 为 true）,这个值表示下一次请求应该使用的 keyMarker 参数值。
+  /// 如果结果未被截断,则为 null。
   final String? nextKeyMarker;
 
   /// 下一个请求的上传ID标记值
   ///
-  /// 如果返回的结果被截断（[isTruncated] 为 true），这个值表示下一次请求应该使用的 uploadIdMarker 参数值。
-  /// 如果结果未被截断，则为 null。
+  /// 如果返回的结果被截断（[isTruncated] 为 true）,这个值表示下一次请求应该使用的 uploadIdMarker 参数值。
+  /// 如果结果未被截断,则为 null。
   final String? nextUploadIdMarker;
 
   /// 请求时指定的前缀
   ///
-  /// 本次请求中指定的 prefix 参数值，用于限定返回的对象必须以该前缀开头。
-  /// 如果请求中没有指定该参数，则为 null。
+  /// 本次请求中指定的 prefix 参数值,用于限定返回的对象必须以该前缀开头。
+  /// 如果请求中没有指定该参数,则为 null。
   final String? prefix;
 
   /// 列表的起始上传ID位置
   ///
   /// 本次请求中指定的 uploadIdMarker 参数值。
-  /// 如果请求中没有指定该参数，则为 null。
+  /// 如果请求中没有指定该参数,则为 null。
   final String? uploadIdMarker;
 
   /// 分片上传事件列表
   ///
   /// 包含所有符合查询条件的分片上传任务的详细信息。
-  /// 每个元素都是一个 [UploadInfo] 对象，包含了分片上传的目标文件、上传ID和初始化时间等信息。
+  /// 每个元素都是一个 [UploadInfo] 对象,包含了分片上传的目标文件、上传ID和初始化时间等信息。
   final List<UploadInfo> uploads;
 
   /// 构造函数
@@ -126,7 +126,7 @@ class ListMultipartUploadsResult {
   ///
   /// 参数：
   /// - [bucket] 必需的存储空间名称
-  /// - [commonPrefixes] 公共前缀列表，默认为空列表
+  /// - [commonPrefixes] 公共前缀列表,默认为空列表
   /// - [delimiter] 可选的目录分隔符
   /// - [encodingType] 可选的编码类型
   /// - [isTruncated] 必需的列表截断标志
@@ -155,28 +155,28 @@ class ListMultipartUploadsResult {
   /// 从XML字符串解析分片上传列表结果
   ///
   /// 将阿里云OSS返回的XML格式响应解析为 [ListMultipartUploadsResult] 对象。
-  /// 使用正则表达式提取各个元素的值，无需依赖外部XML解析库。
+  /// 使用正则表达式提取各个元素的值,无需依赖外部XML解析库。
   ///
   /// 解析过程：
   /// 1. 提取所有的基本元数据字段（Bucket、KeyMarker、MaxUploads等）
-  /// 2. 验证必需字段是否存在，并进行类型转换（如将字符串转为整数和布尔值）
+  /// 2. 验证必需字段是否存在,并进行类型转换（如将字符串转为整数和布尔值）
   /// 3. 提取所有的 `<Upload>` 元素并解析为 [UploadInfo] 对象
   /// 4. 提取所有的 `<CommonPrefixes>` 元素中的 `<Prefix>` 值
   /// 5. 构造并返回完整的 [ListMultipartUploadsResult] 对象
   ///
   /// 默认处理机制：
-  /// - 如果解析单个 `<Upload>` 元素失败，会跳过该元素并继续处理其他元素
-  /// - 对于空的标签或自闭合标签，会正确处理并返回 null
-  /// - 对于可选字段，如果在XML中不存在，则在结果对象中为 null
+  /// - 如果解析单个 `<Upload>` 元素失败,会跳过该元素并继续处理其他元素
+  /// - 对于空的标签或自闭合标签,会正确处理并返回 null
+  /// - 对于可选字段,如果在XML中不存在,则在结果对象中为 null
   ///
   /// 参数：
-  /// - [xmlString] 要解析的XML字符串，通常是 ListMultipartUploads 操作的响应体
+  /// - [xmlString] 要解析的XML字符串,通常是 ListMultipartUploads 操作的响应体
   ///
   /// 返回一个新的 [ListMultipartUploadsResult] 实例
   ///
   /// 异常：
-  /// - 如果 XML 格式无效或缺少必需的元素（Bucket、MaxUploads、IsTruncated），则抛出 [FormatException]
-  /// - 如果 maxUploads 字段不是有效的整数，则抛出 [FormatException]
+  /// - 如果 XML 格式无效或缺少必需的元素（Bucket、MaxUploads、IsTruncated）,则抛出 [FormatException]
+  /// - 如果 maxUploads 字段不是有效的整数,则抛出 [FormatException]
   ///
   /// 示例 XML 格式：
   /// ```xml
@@ -303,8 +303,8 @@ class ListMultipartUploadsResult {
 
   /// 返回实例的字符串表示
   ///
-  /// 提供了一个可读性强的字符串表示，包含所有属性的值。
-  /// 对于列表类型的属性（commonPrefixes 和 uploads），只显示其长度而不显示具体内容，
+  /// 提供了一个可读性强的字符串表示,包含所有属性的值。
+  /// 对于列表类型的属性（commonPrefixes 和 uploads）,只显示其长度而不显示具体内容,
   /// 以避免输出过长。
   ///
   /// 这在调试和日志记录时非常有用。
@@ -315,8 +315,8 @@ class ListMultipartUploadsResult {
 
   /// 创建一个包含可选修改的新实例
   ///
-  /// 这个方法允许基于现有实例创建一个新的 [ListMultipartUploadsResult] 实例，
-  /// 只更新指定的属性，保持其他属性不变。
+  /// 这个方法允许基于现有实例创建一个新的 [ListMultipartUploadsResult] 实例,
+  /// 只更新指定的属性,保持其他属性不变。
   ///
   /// 参数：
   /// - [bucket] 新的存储空间名称
@@ -334,8 +334,8 @@ class ListMultipartUploadsResult {
   ///
   /// 创建一个包含可选修改的新实例
   ///
-  /// 这个方法允许基于现有实例创建一个新的 [ListMultipartUploadsResult] 实例，
-  /// 只更新指定的属性，保持其他属性不变。
+  /// 这个方法允许基于现有实例创建一个新的 [ListMultipartUploadsResult] 实例,
+  /// 只更新指定的属性,保持其他属性不变。
   ///
   /// 参数：
   /// - [bucket] 新的存储空间名称
@@ -384,11 +384,11 @@ class ListMultipartUploadsResult {
 
   /// 获取过期的分片上传任务
   ///
-  /// 根据指定的过期时间阈值，过滤出初始化时间超过该阈值的分片上传任务。
+  /// 根据指定的过期时间阈值,过滤出初始化时间超过该阈值的分片上传任务。
   /// 这在清理长时间未完成的上传任务时非常有用。
   ///
   /// 参数：
-  /// - [threshold] 过期时间阈值，默认为 24 小时
+  /// - [threshold] 过期时间阈值,默认为 24 小时
   ///
   /// 返回过期的分片上传任务列表
   ///
@@ -413,10 +413,10 @@ class ListMultipartUploadsResult {
 
   /// 获取下一页查询的参数映射
   ///
-  /// 当结果被截断时（[isTruncated] 为 true），这个方法返回一个包含下一页查询所需参数的映射。
+  /// 当结果被截断时（[isTruncated] 为 true）,这个方法返回一个包含下一页查询所需参数的映射。
   /// 这个映射可以直接用于构造下一页查询的参数。
   ///
-  /// 如果结果未被截断（[isTruncated] 为 false），则返回空映射。
+  /// 如果结果未被截断（[isTruncated] 为 false）,则返回空映射。
   ///
   /// 返回下一页查询的参数映射
   ///
@@ -425,7 +425,7 @@ class ListMultipartUploadsResult {
   /// // 获取第一页结果
   /// final result = await ossClient.listMultipartUploads();
   ///
-  /// // 如果有更多结果，获取下一页
+  /// // 如果有更多结果,获取下一页
   /// if (result.isTruncated) {
   ///   final nextPageParams = result.getNextPageParams();
   ///   final nextPageResult = await ossClient.listMultipartUploads(

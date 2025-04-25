@@ -4,9 +4,9 @@ import 'package:dio/dio.dart';
 ///
 /// 该拦截器旨在提供更适合 OSS 场景的日志记录功能。
 /// 主要特性包括：
-/// - **优化二进制数据打印**：对于请求体或响应体中的二进制数据（`List<int>`），仅打印其字节长度，避免控制台输出大量无意义内容。
-/// - **敏感请求头自动屏蔽**：自动识别并屏蔽常见的敏感请求头（如 'Authorization'），防止敏感信息泄露。支持自定义需要屏蔽的请求头列表。
-/// - **日志截断**：对于过长的字符串日志（请求/响应体），进行截断处理，并显示原始长度，保持日志简洁性。
+/// - **优化二进制数据打印**：对于请求体或响应体中的二进制数据（`List<int>`）,仅打印其字节长度,避免控制台输出大量无意义内容。
+/// - **敏感请求头自动屏蔽**：自动识别并屏蔽常见的敏感请求头（如 'Authorization'）,防止敏感信息泄露。支持自定义需要屏蔽的请求头列表。
+/// - **日志截断**：对于过长的字符串日志（请求/响应体）,进行截断处理,并显示原始长度,保持日志简洁性。
 /// - **灵活的日志控制**：可以通过构造函数参数控制请求、响应、头信息、体信息以及错误信息的打印开关。
 /// - **自定义日志输出**：允许传入自定义的日志打印函数。
 class OSSLogInterceptor extends Interceptor {
@@ -62,7 +62,7 @@ class OSSLogInterceptor extends Interceptor {
 
   /// 拦截请求
   ///
-  /// 在请求发送前被调用，打印请求相关信息。
+  /// 在请求发送前被调用,打印请求相关信息。
   ///
   /// [options] 请求配置信息
   /// [handler] 请求拦截处理器
@@ -95,7 +95,7 @@ class OSSLogInterceptor extends Interceptor {
 
   /// 拦截响应
   ///
-  /// 在接收到响应后被调用，打印响应相关信息。
+  /// 在接收到响应后被调用,打印响应相关信息。
   ///
   /// [response] 响应对象
   /// [handler] 响应拦截处理器
@@ -108,7 +108,7 @@ class OSSLogInterceptor extends Interceptor {
 
   /// 拦截错误
   ///
-  /// 在请求发生错误时被调用，打印错误信息。
+  /// 在请求发生错误时被调用,打印错误信息。
   ///
   /// [err] Dio 异常对象
   /// [handler] 错误拦截处理器
@@ -150,7 +150,7 @@ class OSSLogInterceptor extends Interceptor {
     logPrint('');
   }
 
-  /// 打印键值对，处理敏感信息屏蔽
+  /// 打印键值对,处理敏感信息屏蔽
   ///
   /// [key] 键
   /// [v] 值
@@ -172,7 +172,7 @@ class OSSLogInterceptor extends Interceptor {
   ///
   /// 根据数据类型进行不同的处理：
   /// - `List<int>`: 打印字节长度。
-  /// - `Map`: 如果条目过多，则截断打印。
+  /// - `Map`: 如果条目过多,则截断打印。
   /// - `String`: 如果超过 `maxLogLength` 则截断打印。
   /// - 其他类型: 调用 `toString()` 打印。
   ///
@@ -180,10 +180,10 @@ class OSSLogInterceptor extends Interceptor {
   void _printData(dynamic data) {
     const int maxMapEntries = 10; // Maximum map entries to print
     if (data is List<int>) {
-      // 二进制数据，只打印长度信息
+      // 二进制数据,只打印长度信息
       logPrint('File data: ${data.length} bytes');
     } else if (data is Map) {
-      // Map 数据，如果过长则截断
+      // Map 数据,如果过长则截断
       if (data.length > maxMapEntries) {
         logPrint(
           'Map data: {${data.keys.take(maxMapEntries).map((key) => '$key: ${data[key]}').join(', ')}, ...} (being cut down, total: ${data.length} entries)',
@@ -192,7 +192,7 @@ class OSSLogInterceptor extends Interceptor {
         logPrint(data);
       }
     } else if (data is String) {
-      // 字符串数据，如果过长则截断
+      // 字符串数据,如果过长则截断
       if (data.length > maxLogLength) {
         logPrint(
           '${data.substring(0, maxLogLength)}... (being cut down, total: ${data.length})',

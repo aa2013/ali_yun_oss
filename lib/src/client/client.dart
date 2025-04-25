@@ -16,25 +16,27 @@ import 'impl/list_multipart_uploads_impl.dart';
 import 'impl/list_parts_impl.dart';
 import 'impl/multipart_upload_impl.dart';
 import 'impl/put_object_impl.dart';
+import 'impl/signed_url_impl.dart';
 import 'impl/upload_part_impl.dart';
 import 'request_handler.dart';
 import 'request_manager.dart';
 
 /// 阿里云OSS客户端
 ///
-/// 实现了 [IOSSService] 接口，提供OSS基础操作，包括：
+/// 实现了 [IOSSService] 接口,提供OSS基础操作,包括：
 /// - 获取对象（下载文件）
 /// - 上传对象（上传文件）
 /// - 分片上传相关操作 (初始化、上传分片、完成、中止、列出分片、列出上传事件)
-/// - 高级分片上传（自动处理分片逻辑，支持并发）
+/// - 高级分片上传（自动处理分片逻辑,支持并发）
+/// - 生成签名URL（用于临时授权访问）
 /// - 请求取消管理
 ///
 /// 主要特性：
 /// - 单例模式：通过 [init] 方法初始化并获取全局唯一实例
 /// - 多签名支持：同时支持 OSS V1 和 V4 签名算法
-/// - 请求管理：内置请求管理器，支持取消指定请求或所有请求
+/// - 请求管理：内置请求管理器,支持取消指定请求或所有请求
 /// - 自动配置：根据提供的 [OSSConfig] 自动配置请求处理器和签名策略
-/// - 模块化设计：通过 mixin 实现各个功能模块，便于维护和扩展
+/// - 模块化设计：通过 mixin 实现各个功能模块,便于维护和扩展
 ///
 /// 使用流程：
 /// 1. 创建 [OSSConfig] 配置对象
@@ -57,6 +59,12 @@ import 'request_manager.dart';
 ///
 /// // 上传文件
 /// await client.putObject(File('local.txt'), 'remote.txt');
+///
+/// // 生成签名URL（默认使用V1签名）
+/// final url = client.signedUrl('example.txt', expires: 3600);
+///
+/// // 生成V4签名URL
+/// final urlV4 = client.signedUrl('example.txt', isV1Signature: false);
 /// ```
 class OSSClient
     with
@@ -69,7 +77,8 @@ class OSSClient
         AbortMultipartUploadImpl,
         ListPartsImpl,
         ListMultipartUploadsImpl,
-        MultipartUploadImpl {
+        MultipartUploadImpl,
+        SignedUrlImpl {
   //============================================================
   // 私有成员变量 & 单例实现
   //============================================================
@@ -82,23 +91,23 @@ class OSSClient
 
   /// 签名策略映射
   ///
-  /// 存储不同类型的签名策略实现，使用布尔值作为键：
-  /// - true: [AliOssV1SignStrategy] - V1签名算法（旧版，基于 HMAC-SHA1）
-  /// - false: [AliOssV4SignStrategy] - V4签名算法（新版，基于 HMAC-SHA256，默认使用）
+  /// 存储不同类型的签名策略实现,使用布尔值作为键：
+  /// - true: [AliOssV1SignStrategy] - V1签名算法（旧版,基于 HMAC-SHA1）
+  /// - false: [AliOssV4SignStrategy] - V4签名算法（新版,基于 HMAC-SHA256,默认使用）
   ///
-  /// 这种设计允许客户端根据需要切换不同的签名算法，同时保持向后兼容性。
-  /// 对于新应用，建议使用 V4 签名算法（false键）。
+  /// 这种设计允许客户端根据需要切换不同的签名算法,同时保持向后兼容性。
+  /// 对于新应用,建议使用 V4 签名算法（false键）。
   late final Map<bool, IOSSSignStrategy> _signStrategies;
 
-  /// 请求管理器，用于取消请求
+  /// 请求管理器,用于取消请求
   final OSSRequestManager _requestManager = OSSRequestManager();
 
   /// 获取请求管理器实例
   ///
-  /// 提供对请求管理器的访问，允许在客户端外部管理请求。
+  /// 提供对请求管理器的访问,允许在客户端外部管理请求。
   /// 这对于需要在不同组件间共享请求管理功能的场景非常有用。
   ///
-  /// 返回 [OSSRequestManager] 实例，可用于取消请求或监控请求状态。
+  /// 返回 [OSSRequestManager] 实例,可用于取消请求或监控请求状态。
   ///
   /// 示例：
   /// ```dart
@@ -121,8 +130,8 @@ class OSSClient
   /// 提供对已初始化的 OSSClient 单例的直接访问。
   /// 这个 getter 方法允许在不再次调用 [init] 方法的情况下获取已初始化的实例。
   ///
-  /// 注意：在使用此 getter 前，必须先调用 [init] 方法初始化客户端。
-  /// 如果客户端尚未初始化，将抛出异常。
+  /// 注意：在使用此 getter 前,必须先调用 [init] 方法初始化客户端。
+  /// 如果客户端尚未初始化,将抛出异常。
   ///
   /// 返回已初始化的 [OSSClient] 单例。
   ///
@@ -151,19 +160,19 @@ class OSSClient
 
   /// 初始化OSS客户端单例
   ///
-  /// 必须在使用客户端前调用此方法进行初始化。该方法实现了单例模式，
+  /// 必须在使用客户端前调用此方法进行初始化。该方法实现了单例模式,
   /// 确保在整个应用中只有一个 OSSClient 实例。
   ///
   /// 初始化过程：
   /// 1. 设置客户端配置
-  /// 2. 初始化请求处理器（如果未提供 Dio 实例，则创建默认实例）
+  /// 2. 初始化请求处理器（如果未提供 Dio 实例,则创建默认实例）
   /// 3. 初始化签名策略（V1 和 V4）
   /// 4. 记录初始化日志
   ///
   /// 参数：
-  /// - [config] OSS配置信息 ([OSSConfig])，包含访问凭证、存储空间信息等
+  /// - [config] OSS配置信息 ([OSSConfig]),包含访问凭证、存储空间信息等
   ///
-  /// 返回初始化的 [OSSClient] 单例实例，可用于执行各种 OSS 操作
+  /// 返回初始化的 [OSSClient] 单例实例,可用于执行各种 OSS 操作
   ///
   /// 示例：
   /// ```dart
@@ -225,10 +234,10 @@ class OSSClient
       );
 
       // 初始化签名策略
-      // 创建两种签名策略的实例，并存储在映射中供后续使用
+      // 创建两种签名策略的实例,并存储在映射中供后续使用
       _instance._signStrategies = {
-        true: AliOssV1SignStrategy(config), // V1 签名算法（旧版，基于 HMAC-SHA1）
-        false: AliOssV4SignStrategy(config), // V4 签名算法（新版，基于 HMAC-SHA256，默认使用）
+        true: V1SignStrategy(config), // V1 签名算法（旧版，基于 HMAC-SHA1）
+        false: AliOssV4SignStrategy(config), // V4 签名算法（新版,基于 HMAC-SHA256,默认使用）
       };
 
       // 记录初始化日志
@@ -261,7 +270,7 @@ class OSSClient
   /// 这对于取消长时间运行的操作（如大文件上传或下载）非常有用。
   ///
   /// 参数：
-  /// - [requestKey] 请求的唯一标识，可以是 fileKey 或其他唯一标识
+  /// - [requestKey] 请求的唯一标识,可以是 fileKey 或其他唯一标识
   ///
   /// 示例：
   /// ```dart
@@ -293,11 +302,11 @@ class OSSClient
   /// 创建带签名的请求头
   ///
   /// 根据提供的参数生成带有阿里云 OSS 认证签名的请求头。
-  /// 支持 V1 和 V4 签名算法，通过 [isV1Signature] 参数切换。
+  /// 支持 V1 和 V4 签名算法,通过 [isV1Signature] 参数切换。
   ///
   /// 签名算法对比：
-  /// - V1签名（[isV1Signature]=true）：基于 HMAC-SHA1，生成的授权头格式为 `OSS {AccessKeyId}:{Signature}`
-  /// - V4签名（[isV1Signature]=false）：基于 HMAC-SHA256，生成的授权头格式更复杂，包含区域信息和认证范围
+  /// - V1签名（[isV1Signature]=true）：基于 HMAC-SHA1,生成的授权头格式为 `OSS {AccessKeyId}:{Signature}`
+  /// - V4签名（[isV1Signature]=false）：基于 HMAC-SHA256,生成的授权头格式更复杂,包含区域信息和认证范围
   ///
   /// 内部实现过程：
   /// 1. 验证必要参数并准备标准化的头部
@@ -305,16 +314,16 @@ class OSSClient
   /// 3. 调用选定签名策略的 [signHeaders] 方法生成签名头
   ///
   /// 参数：
-  /// - [bucketName] 存储空间名称，如果不提供则使用配置中的默认值
+  /// - [bucketName] 存储空间名称,如果不提供则使用配置中的默认值
   /// - [method] HTTP 请求方法（GET、PUT、POST 等）
   /// - [fileKey] OSS 对象键（文件路径）
   /// - [uri] 请求的完整 URI
   /// - [contentLength] 请求体长度（如果有）
-  /// - [baseHeaders] 基础请求头，将被扩展并签名
-  /// - [dateTime] 用于签名的时间，如果不提供则使用当前时间
-  /// - [isV1Signature] 是否使用 V1 签名算法，默认为 false（使用 V4 签名）
+  /// - [baseHeaders] 基础请求头,将被扩展并签名
+  /// - [dateTime] 用于签名的时间,如果不提供则使用当前时间
+  /// - [isV1Signature] 是否使用 V1 签名算法,默认为 false（使用 V4 签名）
   ///
-  /// 返回包含完整签名头部的 Map，可直接用于 HTTP 请求。
+  /// 返回包含完整签名头部的 Map,可直接用于 HTTP 请求。
   ///
   /// 示例：
   /// ```dart
@@ -343,9 +352,6 @@ class OSSClient
     if (method.isEmpty) {
       throw ArgumentError('method 不能为空');
     }
-    if (baseHeaders.isEmpty) {
-      throw ArgumentError('baseHeaders 不能为空');
-    }
 
     // 准备参数
     final String bucket = bucketName ?? config.bucketName;
@@ -365,7 +371,7 @@ class OSSClient
 
     final String contentType =
         headerContentType ??
-        // 对于 POST application/xml，不应依赖 lookupMimeType
+        // 对于 POST application/xml,不应依赖 lookupMimeType
         'application/octet-stream'; // 提供一个默认值
 
     // 构建标准化的头部 Map（全部小写键）
@@ -385,7 +391,7 @@ class OSSClient
     // 获取并验证签名策略
     final IOSSSignStrategy? signStrategy = _signStrategies[isV1Signature];
     if (signStrategy == null) {
-      throw StateError('未找到${isV1Signature ? 'V1' : 'V4'}签名策略，请确保客户端已正确初始化');
+      throw StateError('未找到${isV1Signature ? 'V1' : 'V4'}签名策略,请确保客户端已正确初始化');
     }
 
     // 调用签名策略

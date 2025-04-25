@@ -5,7 +5,7 @@ import 'part_info.dart';
 /// 该类表示调用 ListParts 操作后阿里云OSS返回的结果。
 /// 它包含了特定分片上传任务的所有已上传分片的列表及其相关元数据。
 ///
-/// 该类主要用于查询和管理已上传的分片，帮助开发者继续未完成的分片上传任务。
+/// 该类主要用于查询和管理已上传的分片,帮助开发者继续未完成的分片上传任务。
 /// 它还支持分页查询大量的分片。
 ///
 /// 主要应用场景：
@@ -23,7 +23,7 @@ import 'part_info.dart';
 /// if (result.parts.isNotEmpty) {
 ///   print('已上传 ${result.parts.length} 个分片');
 ///
-///   // 收集所有分片信息，用于完成分片上传
+///   // 收集所有分片信息,用于完成分片上传
 ///   final partETags = result.parts.map((part) => {
 ///     'partNumber': part.partNumber,
 ///     'eTag': part.eTag,
@@ -33,7 +33,7 @@ import 'part_info.dart';
 ///   await ossClient.completeMultipartUpload('example.mp4', uploadId, partETags);
 /// }
 ///
-/// // 如果结果被截断，继续获取下一页
+/// // 如果结果被截断,继续获取下一页
 /// if (result.isTruncated) {
 ///   final nextPageResult = await ossClient.listParts(
 ///     'example.mp4',
@@ -56,7 +56,7 @@ class ListPartsResult {
 
   /// 分片上传ID
   ///
-  /// 由阿里云OSS生成的全局唯一标识符，用于标识这个分片上传任务。
+  /// 由阿里云OSS生成的全局唯一标识符,用于标识这个分片上传任务。
   /// 这个 ID 在上传分片、完成或取消分片上传操作中必须提供。
   final String uploadId;
 
@@ -64,13 +64,13 @@ class ListPartsResult {
   ///
   /// 本次请求中指定的 partNumberMarker 参数值。
   /// 列表从该值之后的分片开始返回。
-  /// 如果请求中没有指定该参数，则为 null。
+  /// 如果请求中没有指定该参数,则为 null。
   final int? partNumberMarker;
 
   /// 下一个分片编号起始位置
   ///
-  /// 如果返回的结果被截断（[isTruncated] 为 true），这个值表示下一次请求应该使用的 partNumberMarker 参数值。
-  /// 如果结果未被截断，则为 null。
+  /// 如果返回的结果被截断（[isTruncated] 为 true）,这个值表示下一次请求应该使用的 partNumberMarker 参数值。
+  /// 如果结果未被截断,则为 null。
   final int? nextPartNumberMarker;
 
   /// 返回的最大分片数
@@ -82,21 +82,21 @@ class ListPartsResult {
   /// 列表是否被截断
   ///
   /// 指示返回的结果是否被截断（即还有更多的分片未返回）。
-  /// - true: 还有更多的分片未返回，可以使用 [nextPartNumberMarker] 继续查询
+  /// - true: 还有更多的分片未返回,可以使用 [nextPartNumberMarker] 继续查询
   /// - false: 所有的分片已经返回
   final bool isTruncated;
 
   /// 编码类型
   ///
   /// 指定响应中返回的内容的编码方式。
-  /// 当请求中指定了 encodingType 参数时（如 'url'），这里会返回相应的编码类型。
-  /// 如果请求中未指定，则为 null。
+  /// 当请求中指定了 encodingType 参数时（如 'url'）,这里会返回相应的编码类型。
+  /// 如果请求中未指定,则为 null。
   final String? encodingType;
 
   /// 分片列表
   ///
   /// 包含所有符合查询条件的已上传分片的详细信息。
-  /// 每个元素都是一个 [PartInfo] 对象，包含了分片编号、ETag、大小和上传时间等信息。
+  /// 每个元素都是一个 [PartInfo] 对象,包含了分片编号、ETag、大小和上传时间等信息。
   /// 这些信息可用于完成分片上传操作。
   final List<PartInfo> parts;
 
@@ -129,27 +129,27 @@ class ListPartsResult {
   /// 从XML字符串解析分片列表结果
   ///
   /// 将阿里云OSS返回的XML格式响应解析为 [ListPartsResult] 对象。
-  /// 使用正则表达式提取各个元素的值，无需依赖外部XML解析库。
+  /// 使用正则表达式提取各个元素的值,无需依赖外部XML解析库。
   ///
   /// 解析过程：
   /// 1. 提取所有的基本元数据字段（Bucket、Key、UploadId等）
-  /// 2. 验证必需字段是否存在，并进行类型转换（如将字符串转为整数和布尔值）
+  /// 2. 验证必需字段是否存在,并进行类型转换（如将字符串转为整数和布尔值）
   /// 3. 提取所有的 `<Part>` 元素并解析为 [PartInfo] 对象
   /// 4. 构造并返回完整的 [ListPartsResult] 对象
   ///
   /// 默认处理机制：
-  /// - 如果解析单个 `<Part>` 元素失败，会跳过该元素并继续处理其他元素
-  /// - 对于空的标签或自闭合标签，会正确处理并返回 null
-  /// - 对于可选字段，如果在XML中不存在，则在结果对象中为 null
+  /// - 如果解析单个 `<Part>` 元素失败,会跳过该元素并继续处理其他元素
+  /// - 对于空的标签或自闭合标签,会正确处理并返回 null
+  /// - 对于可选字段,如果在XML中不存在,则在结果对象中为 null
   ///
   /// 参数：
-  /// - [xmlString] 要解析的XML字符串，通常是 ListParts 操作的响应体
+  /// - [xmlString] 要解析的XML字符串,通常是 ListParts 操作的响应体
   ///
   /// 返回一个新的 [ListPartsResult] 实例
   ///
   /// 异常：
-  /// - 如果 XML 格式无效或缺少必需的元素，则抛出 [FormatException]
-  /// - 如果 maxParts 字段不是有效的整数，则抛出 [FormatException]
+  /// - 如果 XML 格式无效或缺少必需的元素,则抛出 [FormatException]
+  /// - 如果 maxParts 字段不是有效的整数,则抛出 [FormatException]
   factory ListPartsResult.fromXmlString(String xmlString) {
     String? extractValue(String tagName) {
       final RegExpMatch? match = RegExp(
@@ -219,8 +219,8 @@ class ListPartsResult {
 
   /// 返回实例的字符串表示
   ///
-  /// 提供了一个可读性强的字符串表示，包含所有属性的值。
-  /// 对于分片列表，只显示其长度而不显示具体内容，以避免输出过长。
+  /// 提供了一个可读性强的字符串表示,包含所有属性的值。
+  /// 对于分片列表,只显示其长度而不显示具体内容,以避免输出过长。
   ///
   /// 这在调试和日志记录时非常有用。
   @override
@@ -230,8 +230,8 @@ class ListPartsResult {
 
   /// 创建一个包含可选修改的新实例
   ///
-  /// 这个方法允许基于现有实例创建一个新的 [ListPartsResult] 实例，
-  /// 只更新指定的属性，保持其他属性不变。
+  /// 这个方法允许基于现有实例创建一个新的 [ListPartsResult] 实例,
+  /// 只更新指定的属性,保持其他属性不变。
   ///
   /// 参数：
   /// - [bucket] 新的存储空间名称
@@ -271,10 +271,10 @@ class ListPartsResult {
 
   /// 获取下一页查询的参数映射
   ///
-  /// 当结果被截断时（[isTruncated] 为 true），这个方法返回一个包含下一页查询所需参数的映射。
+  /// 当结果被截断时（[isTruncated] 为 true）,这个方法返回一个包含下一页查询所需参数的映射。
   /// 这个映射可以直接用于构造下一页查询的参数。
   ///
-  /// 如果结果未被截断（[isTruncated] 为 false），则返回空映射。
+  /// 如果结果未被截断（[isTruncated] 为 false）,则返回空映射。
   ///
   /// 返回下一页查询的参数映射
   ///
@@ -283,7 +283,7 @@ class ListPartsResult {
   /// // 获取第一页结果
   /// final result = await ossClient.listParts('example.mp4', uploadId);
   ///
-  /// // 如果有更多结果，获取下一页
+  /// // 如果有更多结果,获取下一页
   /// if (result.isTruncated) {
   ///   final nextPageParams = result.getNextPageParams();
   ///   final nextPageResult = await ossClient.listParts(
@@ -304,7 +304,7 @@ class ListPartsResult {
 
   /// 获取分片上传的完成参数
   ///
-  /// 生成用于完成分片上传的参数列表，包含每个分片的编号和 ETag。
+  /// 生成用于完成分片上传的参数列表,包含每个分片的编号和 ETag。
   /// 这个列表可以直接用于调用 completeMultipartUpload 方法。
   ///
   /// 返回用于完成分片上传的参数列表

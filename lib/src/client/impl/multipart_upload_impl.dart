@@ -14,16 +14,16 @@ import 'package:dart_aliyun_oss/src/utils/utils.dart';
 mixin MultipartUploadImpl on IOSSService {
   /// 阿里云 OSS 分片上传实现
   ///
-  /// 提供高效、可靠的大文件上传能力，自动处理分片逻辑，支持并发上传。
-  /// 针对移动设备进行了特别优化，采用流式处理和内存管理策略，确保在资源受限环境下的稳定性。
+  /// 提供高效、可靠的大文件上传能力,自动处理分片逻辑,支持并发上传。
+  /// 针对移动设备进行了特别优化,采用流式处理和内存管理策略,确保在资源受限环境下的稳定性。
   ///
   /// 主要特性：
   /// - 自动分片：根据文件大小智能计算最优分片大小和数量
-  /// - 并发控制：支持自定义并发度，默认为 5
+  /// - 并发控制：支持自定义并发度,默认为 5
   /// - 断点续传：支持从断点处恢复上传（需要外部保存上传状态）
   /// - 进度回调：支持整体上传进度和单片上传进度的监控
   /// - 错误处理：完善的错误检测和恢复机制
-  /// - 资源管理：优化的内存使用，采用流式处理避免大文件加载
+  /// - 资源管理：优化的内存使用,采用流式处理避免大文件加载
   ///
   /// 工作流程：
   /// 1. 文件检查：验证文件存在性和大小
@@ -33,9 +33,9 @@ mixin MultipartUploadImpl on IOSSService {
   /// 5. 完成上传：合并所有分片
   ///
   /// 性能优化：
-  /// - 使用 StreamController 实现流式读取，避免一次性加载大文件
-  /// - 采用信号量控制并发数，避免资源耗尽
-  /// - 优化的缓冲区大小（64KB），平衡内存使用和传输效率
+  /// - 使用 StreamController 实现流式读取,避免一次性加载大文件
+  /// - 采用信号量控制并发数,避免资源耗尽
+  /// - 优化的缓冲区大小（64KB）,平衡内存使用和传输效率
   ///
   /// 错误处理：
   /// - 完整的异常捕获和转换机制
@@ -62,8 +62,8 @@ mixin MultipartUploadImpl on IOSSService {
   /// - 建议对大文件（如>100MB）使用分片上传
   /// - 单个分片大小范围：100KB~5GB
   /// - 分片数量限制：1~10000
-  /// - 确保网络环境稳定，避免中断导致上传失败
-  /// - 建议实现断点续传机制，保存上传状态
+  /// - 确保网络环境稳定,避免中断导致上传失败
+  /// - 建议实现断点续传机制,保存上传状态
   ///
   /// 相关接口：
   /// - [initiateMultipartUpload]: 初始化分片上传
@@ -76,7 +76,7 @@ mixin MultipartUploadImpl on IOSSService {
   ///
   /// [file] 要上传的文件
   /// [ossObjectKey] OSS 对象键
-  /// [maxConcurrency] 最大并发上传分片数，默认为 5
+  /// [maxConcurrency] 最大并发上传分片数,默认为 5
   /// [numberOfParts] 可选的期望分片数量
   /// [onProgress] 整体上传进度回调
   /// [onPartProgress] 单个分片上传进度回调
@@ -122,7 +122,7 @@ mixin MultipartUploadImpl on IOSSService {
         if (totalFileSize == 0) {
           throw OSSException(
             type: OSSErrorType.invalidArgument,
-            message: '文件大小为0，不能进行分片上传',
+            message: '文件大小为0,不能进行分片上传',
           );
         }
 
@@ -193,7 +193,7 @@ mixin MultipartUploadImpl on IOSSService {
 
           if (readLength <= 0) break;
 
-          // 为每个分片创建一个独立的上传任务，使用信号量控制并发
+          // 为每个分片创建一个独立的上传任务,使用信号量控制并发
           final Future<void> partTask = semaphore.acquire().then((_) async {
             if (hasErrorOccurred || effectiveToken.isCancelled) {
               semaphore.release();
@@ -260,7 +260,7 @@ mixin MultipartUploadImpl on IOSSService {
         if (hasErrorOccurred) {
           throw OSSException(
             type: OSSErrorType.uploadPartFailed,
-            message: '分片上传过程中发生错误，上传已中止。',
+            message: '分片上传过程中发生错误,上传已中止。',
           );
         }
 
@@ -277,7 +277,7 @@ mixin MultipartUploadImpl on IOSSService {
         if (validParts.length != numParts) {
           throw OSSException(
             type: OSSErrorType.uploadPartFailed,
-            message: '部分分片上传失败，预期 $numParts 个分片，实际成功 ${validParts.length} 个。',
+            message: '部分分片上传失败,预期 $numParts 个分片,实际成功 ${validParts.length} 个。',
           );
         }
 
@@ -292,10 +292,10 @@ mixin MultipartUploadImpl on IOSSService {
 
         return completeResponse;
       } catch (e) {
-        // 如果上传过程中出错，尝试中止分片上传
+        // 如果上传过程中出错,尝试中止分片上传
         if (uploadId != null && uploadId.isNotEmpty) {
           try {
-            log('上传过程中出错，尝试中止分片上传: $uploadId');
+            log('上传过程中出错,尝试中止分片上传: $uploadId');
             await client.abortMultipartUpload(
               ossObjectKey,
               uploadId,
@@ -327,7 +327,7 @@ mixin MultipartUploadImpl on IOSSService {
     });
   }
 
-  /// 流式上传单个分片，避免一次性加载整个分片到内存
+  /// 流式上传单个分片,避免一次性加载整个分片到内存
   Future<void> _uploadPartStreaming({
     required OSSClient client,
     required File file,
@@ -375,7 +375,7 @@ mixin MultipartUploadImpl on IOSSService {
                 controller?.addError(
                   OSSException(
                     type: OSSErrorType.fileSystem,
-                    message: '无法读取足够的数据：预期 $length 字节，实际读取 $totalBytesRead 字节',
+                    message: '无法读取足够的数据：预期 $length 字节,实际读取 $totalBytesRead 字节',
                   ),
                 );
               }

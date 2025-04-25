@@ -6,7 +6,7 @@ import 'request_manager.dart';
 
 /// OSS请求处理器
 ///
-/// 用于处理阿里云OSS的HTTP请求，支持各种HTTP方法（GET、PUT、POST、DELETE、HEAD、PATCH）
+/// 用于处理阿里云OSS的HTTP请求,支持各种HTTP方法（GET、PUT、POST、DELETE、HEAD、PATCH）
 /// 以及特殊的DOWNLOAD操作。该类是客户端与阿里云OSS服务器交互的核心组件。
 ///
 /// 主要功能：
@@ -15,7 +15,7 @@ import 'request_manager.dart';
 /// - 提供统一的错误处理和资源清理
 /// - 支持进度回调（上传和下载）
 ///
-/// 内部使用 [Dio] 客户端进行实际的网络请求，并与 [OSSRequestManager] 协同工作
+/// 内部使用 [Dio] 客户端进行实际的网络请求,并与 [OSSRequestManager] 协同工作
 /// 管理请求的取消令牌。
 class OSSRequestHandler {
   final Dio _dio;
@@ -26,27 +26,27 @@ class OSSRequestHandler {
   /// 创建一个新的 OSS 请求处理器实例。
   ///
   /// 参数：
-  /// - [_dio] 用于执行 HTTP 请求的 Dio 实例，应已配置好适当的超时和拦截器
-  /// - [_requestManager] 请求管理器实例，用于管理请求的取消令牌
+  /// - [_dio] 用于执行 HTTP 请求的 Dio 实例,应已配置好适当的超时和拦截器
+  /// - [_requestManager] 请求管理器实例,用于管理请求的取消令牌
   OSSRequestHandler(this._dio, this._requestManager);
 
-  /// 封装请求执行逻辑，处理 CancelToken 和资源清理
+  /// 封装请求执行逻辑,处理 CancelToken 和资源清理
   ///
-  /// 该方法提供了一个统一的框架来执行 OSS 请求，包括：
+  /// 该方法提供了一个统一的框架来执行 OSS 请求,包括：
   /// - 管理取消令牌的生命周期
   /// - 处理请求异常并记录日志
   /// - 确保资源正确清理（即使在出错时）
   ///
   /// 参数：
-  /// - [requestKey] 请求的唯一标识符，用于管理取消令牌，通常是文件键或其他唯一标识
-  /// - [cancelToken] 可选的外部提供的取消令牌，如果为 null，将创建新的令牌
-  /// - [requestExecutor] 实际执行请求的函数，接收一个 CancelToken 并返回 `Future<T>`
+  /// - [requestKey] 请求的唯一标识符,用于管理取消令牌,通常是文件键或其他唯一标识
+  /// - [cancelToken] 可选的外部提供的取消令牌,如果为 null,将创建新的令牌
+  /// - [requestExecutor] 实际执行请求的函数,接收一个 CancelToken 并返回 `Future<T>`
   ///
-  /// 返回一个 `Future<T>`，其中 T 是请求执行器返回的类型
+  /// 返回一个 `Future<T>`,其中 T 是请求执行器返回的类型
   ///
   /// 异常处理：
-  /// - 所有异常都会被记录并重新抛出，以便调用者可以处理
-  /// - 无论请求成功还是失败，都会清理相关的取消令牌
+  /// - 所有异常都会被记录并重新抛出,以便调用者可以处理
+  /// - 无论请求成功还是失败,都会清理相关的取消令牌
   Future<T> executeRequest<T>(
     String requestKey,
     CancelToken? cancelToken,
@@ -80,11 +80,11 @@ class OSSRequestHandler {
           stackTrace: s,
         );
 
-        // 重新抛出异常，让调用者处理具体的错误类型
+        // 重新抛出异常,让调用者处理具体的错误类型
         rethrow;
       }
     } finally {
-      // 无论成功还是失败，都确保移除 CancelToken
+      // 无论成功还是失败,都确保移除 CancelToken
       if (cancelToken == null) {
         // 只清理内部创建的令牌
         _requestManager.removeToken(requestKey);
@@ -95,24 +95,24 @@ class OSSRequestHandler {
 
   /// 发送OSS请求
   ///
-  /// 该方法是所有 OSS 请求的入口点，根据提供的 HTTP 方法选择适当的 Dio 方法来执行请求。
+  /// 该方法是所有 OSS 请求的入口点,根据提供的 HTTP 方法选择适当的 Dio 方法来执行请求。
   /// 支持标准的 HTTP 方法（GET、POST、PUT、DELETE、HEAD、PATCH）以及特殊的 DOWNLOAD 操作。
   ///
   /// 参数：
-  /// - [uri] 请求的完整 URI，包含协议、主机、路径和查询参数
-  /// - [method] HTTP 方法，大小写不敏感（内部会转换为大写）
-  /// - [options] Dio 请求配置选项，包含头部、超时等设置
-  /// - [data] 请求体数据，用于 POST、PUT 等包含请求体的方法
-  /// - [optionalParams] 额外的参数，主要用于 DOWNLOAD 方法，包含保存路径等
+  /// - [uri] 请求的完整 URI,包含协议、主机、路径和查询参数
+  /// - [method] HTTP 方法,大小写不敏感（内部会转换为大写）
+  /// - [options] Dio 请求配置选项,包含头部、超时等设置
+  /// - [data] 请求体数据,用于 POST、PUT 等包含请求体的方法
+  /// - [optionalParams] 额外的参数,主要用于 DOWNLOAD 方法,包含保存路径等
   /// - [cancelToken] 用于取消请求的令牌
-  /// - [onSendProgress] 发送进度回调函数，用于监控上传进度
-  /// - [onReceiveProgress] 接收进度回调函数，用于监控下载进度
+  /// - [onSendProgress] 发送进度回调函数,用于监控上传进度
+  /// - [onReceiveProgress] 接收进度回调函数,用于监控下载进度
   ///
-  /// 返回一个 `Future<Response>`，包含请求的响应数据
+  /// 返回一个 `Future<Response>`,包含请求的响应数据
   ///
   /// 异常：
-  /// - 当使用不支持的 HTTP 方法时，抛出 `UnimplementedError`
-  /// - 其他网络相关异常将由 Dio 抛出，如 `DioException`
+  /// - 当使用不支持的 HTTP 方法时,抛出 `UnimplementedError`
+  /// - 其他网络相关异常将由 Dio 抛出,如 `DioException`
   Future<Response<dynamic>> sendRequest({
     required Uri uri,
     required String method,

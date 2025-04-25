@@ -13,7 +13,7 @@ import 'package:dart_aliyun_oss/src/strategy/v1_sign_utils.dart';
 /// - 生成的授权头格式为: `OSS {AccessKeyId}:{Signature}`
 ///
 /// 注意：对于新应用，建议使用更安全的 V4 签名算法。
-class AliOssV1SignStrategy implements IOSSSignStrategy {
+class V1SignStrategy implements IOSSSignStrategy {
   /// OSS 配置信息
   ///
   /// 包含访问密钥ID、访问密钥等认证信息。
@@ -21,11 +21,11 @@ class AliOssV1SignStrategy implements IOSSSignStrategy {
 
   /// 构造函数
   ///
-  /// 创建一个新的 [AliOssV1SignStrategy] 实例。
+  /// 创建一个新的 [V1SignStrategy] 实例。
   ///
   /// 参数：
-  /// - [_config] OSS 配置信息，包含访问密钥ID和密钥
-  AliOssV1SignStrategy(this._config);
+  /// - [config] OSS 配置信息，包含访问密钥ID和密钥
+  V1SignStrategy(this._config);
 
   /// 生成带签名的HTTP请求头
   ///
@@ -36,15 +36,15 @@ class AliOssV1SignStrategy implements IOSSSignStrategy {
   ///
   /// 参数：
   /// - [method] HTTP请求方法（GET、PUT、POST等）
-  /// - [uri] 请求的完整URI，包含查询参数
+  /// - [uri] 请求的完整URI,包含查询参数
   /// - [bucket] OSS存储空间名称
   /// - [fileKey] OSS对象键（文件路径）
-  /// - [headers] 原始请求头，将被扩展并签名
+  /// - [headers] 原始请求头,将被扩展并签名
   /// - [contentType] 请求内容类型（可选）
   /// - [contentLength] 请求内容长度（可选）
-  /// - [dateTime] 用于签名的时间，如果不提供则使用当前时间
+  /// - [dateTime] 用于签名的时间,如果不提供则使用当前时间
   ///
-  /// 返回包含完整签名头部的Map，可直接用于HTTP请求
+  /// 返回包含完整签名头部的Map,可直接用于HTTP请求
   @override
   Map<String, dynamic> signHeaders({
     required String method,

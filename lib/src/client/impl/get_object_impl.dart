@@ -6,9 +6,9 @@ import 'package:dart_aliyun_oss/src/models/models.dart';
 
 /// GetObjectImpl 是阿里云 OSS 获取对象操作的实现
 ///
-/// 该 mixin 提供了从 OSS 下载对象的核心功能，主要特点：
-/// - 支持流式下载，避免一次性加载大文件到内存
-/// - 支持进度回调，可监控下载进度
+/// 该 mixin 提供了从 OSS 下载对象的核心功能,主要特点：
+/// - 支持流式下载,避免一次性加载大文件到内存
+/// - 支持进度回调,可监控下载进度
 /// - 支持自定义请求参数和请求头
 /// - 支持取消下载操作
 /// - 兼容 V1 和 V4 签名算法
@@ -87,11 +87,11 @@ mixin GetObjectImpl on IOSSService {
     });
   }
 
-  /// 流式下载对象，适用于大文件
+  /// 流式下载对象,适用于大文件
   ///
   /// [fileKey] OSS对象的键值
-  /// [params] 可选的请求参数，包含下载进度回调等配置
-  /// 返回一个 [Response] 对象，其中包含文件内容的字节流
+  /// [params] 可选的请求参数,包含下载进度回调等配置
+  /// 返回一个 [Response] 对象,其中包含文件内容的字节流
   Future<Response<Stream<List<int>>>> getObjectStream(
     String fileKey, {
     OSSRequestParams? params,
