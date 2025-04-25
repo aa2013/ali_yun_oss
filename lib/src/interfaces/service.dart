@@ -4,8 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
 
 // 定义回调类型 (如果尚未定义)
-typedef PartProgressCallback =
-    void Function(int partNumber, int count, int total);
+typedef PartProgressCallback = void Function(
+    int partNumber, int count, int total);
 
 mixin IOSSService {
   // -------------------- 基础操作 Section --------------------
@@ -43,12 +43,10 @@ mixin IOSSService {
   /// - [file] 要上传的本地文件
   /// - [fileKey] 上传到OSS的对象键值（路径）
   /// - [params] 可选的请求参数,如自定义头部、超时设置等
-  /// - [onSendProgress] 上传进度回调函数,提供已上传字节数和总字节数
   Future<Response<dynamic>> putObject(
     File file,
     String fileKey, {
     OSSRequestParams? params,
-    ProgressCallback? onSendProgress,
   });
 
   // -------------------- 基础操作 Section End --------------------
@@ -82,6 +80,7 @@ mixin IOSSService {
   /// - [partData] 上传的数据
   /// - [partNumber] 每一个上传的Part都有一个标识它的号码（partNumber）。取值：1~10000
   /// - [uploadId] 本次分片上传事件的 Upload ID
+  /// - [params] 可选的请求参数，可以通过 params.onSendProgress 设置上传进度回调
   ///
   /// 注意事项
   ///
@@ -103,7 +102,6 @@ mixin IOSSService {
     int partNumber,
     String uploadId, {
     OSSRequestParams? params,
-    ProgressCallback? onSendProgress,
   });
 
   /// 在将所有数据Part都上传完成后,您必须调用CompleteMultipartUpload接口来完成整个文件的分片上传。
@@ -169,7 +167,7 @@ mixin IOSSService {
   /// - 对于使用 [multipartUpload] 方法的情况,如果上传失败,会自动尝试调用此方法清理资源
   Future<Response<dynamic>> abortMultipartUpload(
     String fileKey,
-    String uploadId, {
+    String uploadId, {  
     OSSRequestParams? params,
   });
 
@@ -227,7 +225,6 @@ mixin IOSSService {
   /// [numberOfParts] (可选) 期望的分片数量。如果提供,会根据 OSS 限制（大小、数量）进行调整。
   ///                 如果不提供,会根据文件大小自动计算合适的分片数。
   /// [maxConcurrency] 最大并发上传数,默认为 5。
-  /// [onProgress] (可选) 整体上传进度回调 (已上传字节数, 总字节数)。
   /// [onPartProgress] (可选) 单个分片上传进度回调 (分片号, 已发送字节数, 分片总字节数)。
   /// [cancelToken] (可选) 用于取消请求的 CancelToken。
   /// [params] (可选) 额外的请求参数,例如自定义头部。
@@ -253,9 +250,11 @@ mixin IOSSService {
   ///     file,
   ///     'videos/large_video.mp4',
   ///     maxConcurrency: 3,
-  ///     onProgress: (count, total) {
-  ///       print('总进度: ${(count / total * 100).toStringAsFixed(2)}%');
-  ///     },
+  ///     params: OSSRequestParams(
+  ///       onSendProgress: (count, total) {
+  ///         print('总进度: ${(count / total * 100).toStringAsFixed(2)}%');
+  ///       },
+  ///     ),
   ///     cancelToken: cancelToken,
   ///   );
   ///   print('上传成功: ${result.data?.location}');
@@ -271,7 +270,6 @@ mixin IOSSService {
     String ossObjectKey, {
     int maxConcurrency = 5,
     int? numberOfParts,
-    ProgressCallback? onProgress, // 整体进度
     PartProgressCallback? onPartProgress, // 分片进度
     CancelToken? cancelToken,
     OSSRequestParams? params,

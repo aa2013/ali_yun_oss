@@ -34,7 +34,7 @@ mixin UploadPartImpl on IOSSService {
   /// [partNumber] 分片编号 (从 1 开始)
   /// [uploadId] [initiateMultipartUpload] 返回的 Upload ID
   /// [params] 可选的请求参数 ([OSSRequestParams])
-  /// [onSendProgress] 分片上传进度回调
+  ///   - 可以通过 params.onSendProgress 设置上传进度回调
   /// 返回一个 [Response]。成功时响应体为空,但 Headers 包含 ETag。
   @override
   Future<Response<dynamic>> uploadPart(
@@ -43,7 +43,6 @@ mixin UploadPartImpl on IOSSService {
     int partNumber,
     String uploadId, {
     OSSRequestParams? params,
-    ProgressCallback? onSendProgress,
   }) async {
     // 添加参数验证
     if (fileKey.isEmpty) {
@@ -104,15 +103,16 @@ mixin UploadPartImpl on IOSSService {
           headers: headers,
         );
 
-        final Response<dynamic> response = await client.requestHandler
-            .sendRequest(
-              uri: uri,
-              method: 'PUT',
-              options: requestOptions,
-              data: partData,
-              cancelToken: cancelToken,
-              onSendProgress: onSendProgress,
-            );
+        final Response<dynamic> response =
+            await client.requestHandler.sendRequest(
+          uri: uri,
+          method: 'PUT',
+          options: requestOptions,
+          data: partData,
+          cancelToken: cancelToken,
+          onReceiveProgress: params?.onReceiveProgress,
+          onSendProgress: params?.onSendProgress,
+        );
 
         return response;
       },
@@ -120,6 +120,16 @@ mixin UploadPartImpl on IOSSService {
   }
 
   /// 使用流式数据上传分片
+  ///
+  /// 上传文件的一个分片，使用流式数据避免一次性加载整个分片到内存。
+  ///
+  /// [fileKey] OSS 对象键
+  /// [dataStream] 分片数据流
+  /// [contentLength] 分片数据长度
+  /// [partNumber] 分片编号 (从 1 开始)
+  /// [uploadId] [initiateMultipartUpload] 返回的 Upload ID
+  /// [params] 可选的请求参数 ([OSSRequestParams])
+  ///   - 可以通过 params.onSendProgress 设置上传进度回调
   Future<Response<dynamic>> uploadPartStream(
     String fileKey,
     Stream<List<int>> dataStream,
@@ -127,7 +137,6 @@ mixin UploadPartImpl on IOSSService {
     int partNumber,
     String uploadId, {
     OSSRequestParams? params,
-    ProgressCallback? onSendProgress,
   }) async {
     // 添加参数验证
     if (contentLength <= 0) {
@@ -174,15 +183,16 @@ mixin UploadPartImpl on IOSSService {
           headers: headers,
         );
 
-        final Response<dynamic> response = await client.requestHandler
-            .sendRequest(
-              uri: uri,
-              method: 'PUT',
-              data: dataStream,
-              options: requestOptions,
-              cancelToken: effectiveToken,
-              onSendProgress: onSendProgress,
-            );
+        final Response<dynamic> response =
+            await client.requestHandler.sendRequest(
+          uri: uri,
+          method: 'PUT',
+          data: dataStream,
+          options: requestOptions,
+          cancelToken: effectiveToken,
+          onReceiveProgress: params?.onReceiveProgress,
+          onSendProgress: params?.onSendProgress,
+        );
 
         return response;
       },

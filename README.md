@@ -16,7 +16,7 @@ This is a Dart client SDK for Alibaba Cloud Object Storage Service (OSS), provid
 
 ```yaml
 dependencies:
-  dart_aliyun_oss: ^1.0.0
+  dart_aliyun_oss: ^1.0.1
 ```
 
 Then run:
@@ -52,9 +52,11 @@ Future<void> uploadFile() async {
   await oss.putObject(
     file,
     'example/file.txt', // OSS object key
-    onSendProgress: (int count, int total) {
-      print('Upload progress: ${(count / total * 100).toStringAsFixed(2)}%');
-    },
+    params: OSSRequestParams(
+      onSendProgress: (int count, int total) {
+        print('Upload progress: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
   );
 }
 ```
@@ -91,9 +93,11 @@ Future<void> multipartUpload() async {
   final completeResponse = await oss.multipartUpload(
     file,
     ossObjectKey,
-    onProgress: (count, total) {
-      print('Overall progress: ${(count / total * 100).toStringAsFixed(2)}%');
-    },
+    params: OSSRequestParams(
+      onSendProgress: (count, total) {
+        print('Overall progress: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
   );
 
   print('Multipart upload completed successfully!');

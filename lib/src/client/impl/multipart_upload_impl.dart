@@ -78,7 +78,6 @@ mixin MultipartUploadImpl on IOSSService {
   /// [ossObjectKey] OSS 对象键
   /// [maxConcurrency] 最大并发上传分片数,默认为 5
   /// [numberOfParts] 可选的期望分片数量
-  /// [onProgress] 整体上传进度回调
   /// [onPartProgress] 单个分片上传进度回调
   /// [cancelToken] 可选的取消令牌
   /// [params] 可选的请求参数
@@ -89,7 +88,6 @@ mixin MultipartUploadImpl on IOSSService {
     String ossObjectKey, {
     int? maxConcurrency,
     int? numberOfParts,
-    ProgressCallback? onProgress,
     PartProgressCallback? onPartProgress,
     CancelToken? cancelToken,
     OSSRequestParams? params,
@@ -153,7 +151,7 @@ mixin MultipartUploadImpl on IOSSService {
         log('分片上传配置: 文件大小=$totalFileSize字节, 分片数=$numParts, 分片大小=$partSize字节');
 
         uploadedPartsInfo = List<PartInfo?>.filled(numParts, null);
-        onProgress?.call(0, totalFileSize);
+        params?.onSendProgress?.call(0, totalFileSize);
 
         // 3. 初始化分片上传
         final Response<InitiateMultipartUploadResult> initResponse =
@@ -219,7 +217,7 @@ mixin MultipartUploadImpl on IOSSService {
                   progressLock.synchronized(() {
                     if (!hasErrorOccurred) {
                       totalUploadedSize += readLength;
-                      onProgress?.call(totalUploadedSize, totalFileSize);
+                      params?.onSendProgress?.call(totalUploadedSize, totalFileSize);
                     }
                   });
                 },
@@ -284,11 +282,11 @@ mixin MultipartUploadImpl on IOSSService {
         // 5. 完成分片上传
         final Response<CompleteMultipartUploadResult> completeResponse =
             await client.completeMultipartUpload(
-              ossObjectKey,
-              uploadId,
-              validParts,
-              params: params,
-            );
+          ossObjectKey,
+          uploadId,
+          validParts,
+          params: params,
+        );
 
         return completeResponse;
       } catch (e) {
@@ -391,7 +389,14 @@ mixin MultipartUploadImpl on IOSSService {
         );
 
         // 上传分片
-        final uploadParams = params?.copyWith(cancelToken: effectiveToken);
+        // 创建一个新的 params，包含 cancelToken 和 onSendProgress
+        final uploadParams = params?.copyWith(
+          cancelToken: effectiveToken,
+          onSendProgress: (count, total) {
+            onPartProgress?.call(partNumber, count, length);
+          },
+        );
+
         final Response<dynamic> uploadResponse = await client.uploadPartStream(
           ossObjectKey,
           controller.stream,
@@ -399,9 +404,6 @@ mixin MultipartUploadImpl on IOSSService {
           partNumber,
           uploadId,
           params: uploadParams,
-          onSendProgress: (count, total) {
-            onPartProgress?.call(partNumber, count, length);
-          },
         );
 
         // 处理响应

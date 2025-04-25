@@ -83,6 +83,7 @@ mixin GetObjectImpl on IOSSService {
         options: requestOptions,
         cancelToken: cancelToken,
         onReceiveProgress: params?.onReceiveProgress,
+        onSendProgress: params?.onSendProgress,
       );
     });
   }
@@ -142,6 +143,7 @@ mixin GetObjectImpl on IOSSService {
           options: requestOptions,
           cancelToken: cancelToken,
           onReceiveProgress: params?.onReceiveProgress,
+          onSendProgress: params?.onSendProgress,
         );
 
         return response as Response<Stream<List<int>>>;

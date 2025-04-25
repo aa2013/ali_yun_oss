@@ -96,19 +96,21 @@ mixin InitiateMultipartUploadImpl on IOSSService {
         );
 
         try {
-          final Response<dynamic> response = await client.requestHandler
-              .sendRequest(
-                uri: uri,
-                method: 'POST',
-                options: requestOptions,
-                data: null,
-                cancelToken: cancelToken,
-              );
+          final Response<dynamic> response =
+              await client.requestHandler.sendRequest(
+            uri: uri,
+            method: 'POST',
+            options: requestOptions,
+            data: null,
+            cancelToken: cancelToken,
+            onReceiveProgress: params?.onReceiveProgress,
+            onSendProgress: params?.onSendProgress,
+          );
 
           final InitiateMultipartUploadResult result =
               InitiateMultipartUploadResult.fromXmlString(
-                response.data as String,
-              );
+            response.data as String,
+          );
 
           return Response<InitiateMultipartUploadResult>(
             data: result,

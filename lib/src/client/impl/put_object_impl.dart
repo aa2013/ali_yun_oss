@@ -47,7 +47,6 @@ mixin PutObjectImpl on IOSSService {
   /// [file] 要上传的本地文件 ([File])
   /// [fileKey] 上传到 OSS 的对象键 (路径)
   /// [params] 可选的请求参数 ([OSSRequestParams])
-  /// [onSendProgress] 上传进度回调
   /// [acl] 对象访问控制列表 (如 'private', 'public-read')
   /// [storageClass] 存储类型 (如 'Standard', 'IA')
   /// [forbidOverride] 是否禁止覆盖同名文件 (需要 Bucket 版本控制支持)
@@ -57,7 +56,6 @@ mixin PutObjectImpl on IOSSService {
     File file,
     String fileKey, {
     OSSRequestParams? params,
-    ProgressCallback? onSendProgress,
     String? acl,
     String? storageClass,
     bool? forbidOverride,
@@ -140,7 +138,8 @@ mixin PutObjectImpl on IOSSService {
           options: requestOptions,
           data: data,
           cancelToken: cancelToken,
-          onSendProgress: onSendProgress,
+          onReceiveProgress: params?.onReceiveProgress,
+          onSendProgress: params?.onSendProgress,
         );
       } catch (e) {
         throw OSSException(

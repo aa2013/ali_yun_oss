@@ -117,6 +117,8 @@ mixin ListPartsImpl on IOSSService {
                 options: requestOptions,
                 data: null,
                 cancelToken: cancelToken,
+                onReceiveProgress: params?.onReceiveProgress,
+                onSendProgress: params?.onSendProgress,
               );
 
           try {

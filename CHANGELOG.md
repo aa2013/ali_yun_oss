@@ -1,5 +1,25 @@
 # Changelog | 更新日志
 
+## 1.0.1
+
+### English
+
+- Unified progress callback parameters by moving all to OSSRequestParams class
+- Added onSendProgress parameter to OSSRequestParams class
+- Removed standalone onSendProgress/onProgress parameters from methods
+- Updated all network requests to use the unified progress callback approach
+- Updated example code to use the new parameter passing approach
+- Simplified progress display format
+
+### 中文
+
+- 统一进度回调参数，将所有回调移至 OSSRequestParams 类中
+- 在 OSSRequestParams 类中添加 onSendProgress 参数
+- 移除各方法中独立的 onSendProgress/onProgress 参数
+- 更新所有网络请求，使用统一的进度回调方式
+- 更新示例代码，使用新的参数传递方式
+- 简化进度显示格式
+
 ## 1.0.0
 
 ### English

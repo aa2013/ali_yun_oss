@@ -14,7 +14,7 @@
 
 ```yaml
 dependencies:
-  dart_aliyun_oss: ^1.0.0
+  dart_aliyun_oss: ^1.0.1
 ```
 
 然后运行:
@@ -50,9 +50,11 @@ Future<void> uploadFile() async {
   await oss.putObject(
     file,
     'example/file.txt', // OSS对象键名
-    onSendProgress: (int count, int total) {
-      print('上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
-    },
+    params: OSSRequestParams(
+      onSendProgress: (int count, int total) {
+        print('上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
   );
 }
 ```
@@ -89,9 +91,11 @@ Future<void> multipartUpload() async {
   final completeResponse = await oss.multipartUpload(
     file,
     ossObjectKey,
-    onProgress: (count, total) {
-      print('整体上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
-    },
+    params: OSSRequestParams(
+      onSendProgress: (count, total) {
+        print('整体上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
   );
 
   print('分片上传成功完成!');

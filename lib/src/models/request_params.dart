@@ -62,22 +62,30 @@ class OSSRequestParams {
 
   /// 响应接收进度回调
   ///
-  /// 可选的进度回调函数,用于监控下载进度。
+  /// 可选的进度回调函数，用于监控下载进度。
   /// 回调函数接收两个参数：已接收的字节数和总字节数。
   /// 这在需要在UI上显示下载进度条时非常有用。
   final ProgressCallback? onReceiveProgress;
 
+  /// 请求发送进度回调
+  ///
+  /// 可选的进度回调函数，用于监控上传进度。
+  /// 回调函数接收两个参数：已发送的字节数和总字节数。
+  /// 这在需要在UI上显示上传进度条时非常有用。
+  final ProgressCallback? onSendProgress;
+
   /// 构造函数
   ///
-  /// 创建一个新的 [OSSRequestParams] 实例,包含指定的参数。
+  /// 创建一个新的 [OSSRequestParams] 实例，包含指定的参数。
   ///
   /// 参数：
   /// - [bucketName] 可选的存储空间名称
   /// - [dateTime] 可选的请求时间
-  /// - [isV1Signature] 是否使用V1签名算法,默认为 false（使用V4签名）
+  /// - [isV1Signature] 是否使用V1签名算法，默认为 false（使用V4签名）
   /// - [options] 可选的Dio请求配置
   /// - [cancelToken] 可选的取消令牌
   /// - [onReceiveProgress] 可选的下载进度回调
+  /// - [onSendProgress] 可选的上传进度回调
   const OSSRequestParams({
     this.bucketName,
     this.dateTime,
@@ -85,12 +93,13 @@ class OSSRequestParams {
     this.options,
     this.cancelToken,
     this.onReceiveProgress,
+    this.onSendProgress,
   });
 
   /// 创建一个包含可选修改的新实例
   ///
-  /// 这个方法允许基于现有实例创建一个新的 [OSSRequestParams] 实例,
-  /// 只更新指定的属性,保持其他属性不变。
+  /// 这个方法允许基于现有实例创建一个新的 [OSSRequestParams] 实例，
+  /// 只更新指定的属性，保持其他属性不变。
   ///
   /// 参数：
   /// - [bucketName] 新的存储空间名称
@@ -98,7 +107,8 @@ class OSSRequestParams {
   /// - [isV1Signature] 新的签名算法设置
   /// - [options] 新的请求配置
   /// - [cancelToken] 新的取消令牌
-  /// - [onReceiveProgress] 新的进度回调
+  /// - [onReceiveProgress] 新的下载进度回调
+  /// - [onSendProgress] 新的上传进度回调
   ///
   /// 返回一个新的 [OSSRequestParams] 实例
   ///
@@ -116,6 +126,7 @@ class OSSRequestParams {
     Options? options,
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
+    ProgressCallback? onSendProgress,
   }) {
     return OSSRequestParams(
       bucketName: bucketName ?? this.bucketName,
@@ -124,12 +135,13 @@ class OSSRequestParams {
       options: options ?? this.options,
       cancelToken: cancelToken ?? this.cancelToken,
       onReceiveProgress: onReceiveProgress ?? this.onReceiveProgress,
+      onSendProgress: onSendProgress ?? this.onSendProgress,
     );
   }
 
   /// 返回实例的字符串表示
   ///
-  /// 提供了一个可读性强的字符串表示,便于调试和日志记录。
+  /// 提供了一个可读性强的字符串表示，便于调试和日志记录。
   @override
   String toString() {
     return 'OSSRequestParams(bucketName: $bucketName, '
@@ -137,6 +149,7 @@ class OSSRequestParams {
         'isV1Signature: $isV1Signature, '
         'options: $options, '
         'cancelToken: ${cancelToken != null ? '已设置' : '未设置'}, '
-        'onReceiveProgress: ${onReceiveProgress != null ? '已设置' : '未设置'})';
+        'onReceiveProgress: ${onReceiveProgress != null ? '已设置' : '未设置'}, '
+        'onSendProgress: ${onSendProgress != null ? '已设置' : '未设置'})';
   }
 }

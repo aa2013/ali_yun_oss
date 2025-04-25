@@ -1,8 +1,8 @@
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 mixin ListMultipartUploadsImpl on IOSSService {
   /// 列出所有进行中的分片上传事件
@@ -102,14 +102,16 @@ mixin ListMultipartUploadsImpl on IOSSService {
         );
 
         // 发送 GET 请求
-        final Response<dynamic> response = await client.requestHandler
-            .sendRequest(
-              uri: uri,
-              method: 'GET',
-              options: requestOptions,
-              data: null,
-              cancelToken: cancelToken,
-            );
+        final Response<dynamic> response =
+            await client.requestHandler.sendRequest(
+          uri: uri,
+          method: 'GET',
+          options: requestOptions,
+          data: null,
+          cancelToken: cancelToken,
+          onReceiveProgress: params?.onReceiveProgress,
+          onSendProgress: params?.onSendProgress,
+        );
 
         // 解析 XML 响应体
         final ListMultipartUploadsResult result =

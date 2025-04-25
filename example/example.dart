@@ -46,15 +46,15 @@ Future<void> _runSimpleUploadExample() async {
       'example/test_oss_put.txt',
       params: OSSRequestParams(
         isV1Signature: isV1Signature, // 使用全局签名版本设置
+        onSendProgress: (int count, int total) {
+          // 处理上传进度,用百分比展示
+          if (total > 0) {
+            print('上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+          } else {
+            print('上传进度: $count bytes');
+          }
+        },
       ),
-      onSendProgress: (int count, int total) {
-        // 处理上传进度,用百分比展示
-        if (total > 0) {
-          print('上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
-        } else {
-          print('上传进度: $count bytes');
-        }
-      },
     );
     print('文件上传成功');
   } catch (e) {
@@ -124,16 +124,14 @@ Future<void> _runMultipartUploadExample() async {
       // numberOfParts: 5, // 可选：传入期望的分片数
       params: OSSRequestParams(
         isV1Signature: isV1Signature, // 使用全局签名版本设置
+        onSendProgress: (count, total) {
+          if (total > 0) {
+            print('  整体上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+          } else {
+            print('  整体上传进度: $count bytes');
+          }
+        },
       ),
-      onProgress: (count, total) {
-        if (total > 0) {
-          print(
-            '  整体上传进度: ${(count / total * 100).toStringAsFixed(2)}% ($count/$total bytes)',
-          );
-        } else {
-          print('  整体上传进度: $count bytes');
-        }
-      },
       onPartProgress: (partNumber, count, total) {
         if (total > 0) {
           // 可以选择性地打印分片进度,避免过多日志
@@ -150,10 +148,9 @@ Future<void> _runMultipartUploadExample() async {
     print('  OSS ETag: ${completeResponse.data?.eTag}');
 
     // 获取并打印实际使用的分片数量
-    final actualPartsCount =
-        completeResponse.data?.eTag
-            .split('-')
-            .lastOrNull; // eTag 格式通常为 "xxx-N",其中 N 为分片数量
+    final actualPartsCount = completeResponse.data?.eTag
+        .split('-')
+        .lastOrNull; // eTag 格式通常为 "xxx-N",其中 N 为分片数量
     if (actualPartsCount != null) {
       print('  实际分片数量: $actualPartsCount');
     }
