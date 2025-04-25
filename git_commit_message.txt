@@ -17,7 +17,8 @@ feat: 统一进度回调参数并优化接口设计
    - 简化进度显示格式
 
 4. 文档更新
-   - 更新 CHANGELOG.md 添加 1.0.1 版本信息
+   - 将 CHANGELOG 分为英文版（CHANGELOG.md）和中文版（CHANGELOG_zh.md）
+   - 添加 1.0.1 版本信息到 CHANGELOG 文件
    - 更新 README.md 和 README_zh.md 中的版本号和示例代码
 
 5. 版本升级
