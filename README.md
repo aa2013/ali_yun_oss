@@ -1,39 +1,42 @@
-# 阿里云OSS Dart SDK
+# Alibaba Cloud OSS Dart SDK
 
-这是一个用于阿里云对象存储服务(OSS)的Dart客户端SDK,提供了简单易用的API来访问阿里云OSS服务。
+[English](README.md) | [中文](README_zh.md)
 
-## 功能特点
+This is a Dart client SDK for Alibaba Cloud Object Storage Service (OSS), providing simple and easy-to-use APIs to access Alibaba Cloud OSS services.
 
-- 支持文件的上传和下载
-- 支持大文件的分片上传
-- 支持上传和下载进度监控
-- 支持分片上传的管理操作（列出、终止等）
+## Features
 
-## 安装
+- File upload and download
+- Large file multipart upload
+- Upload and download progress monitoring
+- Multipart upload management operations (list, abort, etc.)
+- Support for both V1 and V4 signature algorithms
+
+## Installation
 
 ```yaml
 dependencies:
   dart_aliyun_oss: ^1.0.0
 ```
 
-然后运行:
+Then run:
 
 ```bash
 dart pub get
 ```
 
-## 使用示例
+## Usage Examples
 
-### 初始化
+### Initialization
 
 ```dart
 import 'package:dart_aliyun_oss/dart_aliyun_oss.dart';
 
-// 初始化OSS客户端
+// Initialize OSS client
 final oss = OSSClient.init(
   OSSConfig(
-    endpoint: 'your-endpoint.aliyuncs.com', // 例如: oss-cn-hangzhou.aliyuncs.com
-    region: 'your-region', // 例如: cn-hangzhou
+    endpoint: 'your-endpoint.aliyuncs.com', // e.g. oss-cn-hangzhou.aliyuncs.com
+    region: 'your-region', // e.g. cn-hangzhou
     accessKeyId: 'your-access-key-id',
     accessKeySecret: 'your-access-key-secret',
     bucketName: 'your-bucket-name',
@@ -41,22 +44,22 @@ final oss = OSSClient.init(
 );
 ```
 
-### 简单上传
+### Simple Upload
 
 ```dart
 Future<void> uploadFile() async {
   final file = File('path/to/your/file.txt');
   await oss.putObject(
     file,
-    'example/file.txt', // OSS对象键名
+    'example/file.txt', // OSS object key
     onSendProgress: (int count, int total) {
-      print('上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+      print('Upload progress: ${(count / total * 100).toStringAsFixed(2)}%');
     },
   );
 }
 ```
 
-### 下载文件
+### Download File
 
 ```dart
 Future<void> downloadFile() async {
@@ -67,7 +70,7 @@ Future<void> downloadFile() async {
     ossObjectKey,
     params: OSSRequestParams(
       onReceiveProgress: (int count, int total) {
-        print('下载进度: ${(count / total * 100).toStringAsFixed(2)}%');
+        print('Download progress: ${(count / total * 100).toStringAsFixed(2)}%');
       },
     ),
   );
@@ -78,7 +81,7 @@ Future<void> downloadFile() async {
 }
 ```
 
-### 分片上传
+### Multipart Upload
 
 ```dart
 Future<void> multipartUpload() async {
@@ -89,23 +92,44 @@ Future<void> multipartUpload() async {
     file,
     ossObjectKey,
     onProgress: (count, total) {
-      print('整体上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+      print('Overall progress: ${(count / total * 100).toStringAsFixed(2)}%');
     },
   );
 
-  print('分片上传成功完成!');
+  print('Multipart upload completed successfully!');
 }
 ```
 
-## 更多示例
+### Generate Signed URL
 
-更多示例请参考 `example/oss_example.dart` 文件。
+```dart
+// Generate a signed URL with V1 signature algorithm
+final String signedUrlV1 = oss.signedUrl(
+  'example/test.txt',
+  method: 'GET',
+  expires: 3600, // URL expires in 1 hour
+  isV1Signature: true,
+);
 
-## 注意事项
+// Generate a signed URL with V4 signature algorithm
+final String signedUrlV4 = oss.signedUrl(
+  'example/test.txt',
+  method: 'GET',
+  expires: 3600,
+  isV1Signature: false,
+);
+```
 
-- 请勿在生产代码中硬编码您的AccessKey信息,建议使用环境变量或其他安全的凭证管理方式。
-- 在使用分片上传时,如果上传过程被中断,请确保调用 `abortMultipartUpload` 方法清理未完成的分片上传。
+## More Examples
 
-## 许可证
+For more examples, please refer to the `example/example.dart` file.
 
-MIT
+## Notes
+
+- Do not hardcode your AccessKey information in production code. It is recommended to use environment variables or other secure credential management methods.
+
+- When using multipart upload, if the upload process is interrupted, make sure to call the `abortMultipartUpload` method to clean up incomplete multipart uploads.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
