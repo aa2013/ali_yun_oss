@@ -50,9 +50,9 @@ mixin GetObjectImpl on IOSSService {
     return client.requestHandler.executeRequest(fileKey, params?.cancelToken, (
       CancelToken cancelToken,
     ) async {
-      final String bucket = params?.bucketName ?? client.config.bucketName;
-      final Uri uri = Uri.parse(
-        'https://$bucket.${client.config.endpoint}/$fileKey',
+      final Uri uri = client.buildOssUri(
+        bucket: params?.bucketName,
+        fileKey: fileKey,
       );
 
       final Map<String, dynamic> baseHeaders = {
@@ -110,9 +110,9 @@ mixin GetObjectImpl on IOSSService {
       fileKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final String bucket = params?.bucketName ?? client.config.bucketName;
-        final Uri uri = Uri.parse(
-          'https://$bucket.${client.config.endpoint}/$fileKey',
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: fileKey,
         );
 
         final Map<String, dynamic> baseHeaders = {

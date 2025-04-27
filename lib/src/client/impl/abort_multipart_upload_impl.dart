@@ -57,14 +57,13 @@ mixin AbortMultipartUploadImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final String bucket = params?.bucketName ?? client.config.bucketName;
         final Map<String, String> queryParameters = {'uploadId': uploadId};
 
-        // 使用 Uri.https 构建更高效
-        final Uri uri = Uri.https(
-          '$bucket.${client.config.endpoint}',
-          fileKey,
-          queryParameters,
+        // 使用 buildOssUri 构建更高效
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: fileKey,
+          queryParameters: queryParameters,
         );
 
         // 复用基础请求头

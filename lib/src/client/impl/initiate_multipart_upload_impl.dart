@@ -70,13 +70,11 @@ mixin InitiateMultipartUploadImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final String bucket = params?.bucketName ?? client.config.bucketName;
-
-        // 使用 Uri.https 构建 URI
-        final Uri uri = Uri.https(
-          '$bucket.${client.config.endpoint}',
-          fileKey,
-          {'uploads': ''}, // 查询参数更清晰的表示
+        // 使用 buildOssUri 构建 URI
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: fileKey,
+          queryParameters: {'uploads': ''}, // 查询参数更清晰的表示
         );
 
         final Map<String, dynamic> headers = client.createSignedHeaders(

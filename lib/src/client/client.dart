@@ -295,8 +295,40 @@ class OSSClient
   }
 
   //============================================================
-  // 私有辅助方法
+  // 辅助方法
   //============================================================
+
+  /// 构建阿里云OSS的URI
+  ///
+  /// 根据提供的参数构建完整的OSS URI。
+  ///
+  /// 参数：
+  /// - [bucket] OSS存储空间名称，如果不提供则使用配置中的默认值
+  /// - [fileKey] OSS对象键（文件路径）
+  /// - [queryParameters] 可选的查询参数
+  ///
+  /// 返回构建好的URI对象
+  ///
+  /// 示例：
+  /// ```dart
+  /// final uri = buildOssUri(
+  ///   fileKey: 'example.txt',
+  ///   queryParameters: {'uploads': ''},
+  /// );
+  /// // 结果: https://my-bucket.oss-cn-hangzhou.aliyuncs.com/example.txt?uploads=
+  /// ```
+  Uri buildOssUri({
+    String? bucket,
+    required String fileKey,
+    Map<String, String>? queryParameters,
+  }) {
+    final String bucketName = bucket ?? config.bucketName;
+    return Uri.https(
+      '$bucketName.${config.endpoint}',
+      fileKey,
+      queryParameters,
+    );
+  }
 
   /// 创建带签名的请求头
   ///
@@ -358,10 +390,10 @@ class OSSClient
     final String date = HttpDate.format(now);
 
     // 构建URI
-    final Uri uri = Uri.https(
-      '$bucket.${config.endpoint}',
-      fileKey,
-      queryParameters,
+    final Uri uri = buildOssUri(
+      bucket: bucket,
+      fileKey: fileKey,
+      queryParameters: queryParameters,
     );
 
     // 尝试从 baseHeaders 获取 Content-Type

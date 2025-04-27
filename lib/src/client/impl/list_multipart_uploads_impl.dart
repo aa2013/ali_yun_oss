@@ -74,9 +74,11 @@ mixin ListMultipartUploadsImpl on IOSSService {
         };
 
         // 构建包含操作特定查询参数的 URI (操作针对 Bucket 根)
-        final Uri uri = Uri.parse(
-          'https://$bucketName.${client.config.endpoint}/', // 路径是根 '/'
-        ).replace(queryParameters: operationQuery);
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: '', // 路径是根 '/'
+          queryParameters: operationQuery,
+        );
 
         // 准备基础 Headers
         final Map<String, dynamic> baseHeaders = {

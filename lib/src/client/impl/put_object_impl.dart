@@ -96,9 +96,9 @@ mixin PutObjectImpl on IOSSService {
           print('警告: 文件大小超过100MB,建议使用分片上传');
         }
 
-        final String bucket = params?.bucketName ?? client.config.bucketName;
-        final Uri uri = Uri.parse(
-          'https://$bucket.${client.config.endpoint}/$fileKey',
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: fileKey,
         );
 
         final Stream<List<int>> stream = file.openRead();

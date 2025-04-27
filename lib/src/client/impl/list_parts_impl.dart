@@ -78,7 +78,6 @@ mixin ListPartsImpl on IOSSService {
       params?.cancelToken,
       (CancelToken cancelToken) async {
         try {
-          final String bucket = params?.bucketName ?? client.config.bucketName;
           // 预分配 Map 大小
           final Map<String, String> operationQuery =
               Map<String, String>.fromEntries([
@@ -88,9 +87,11 @@ mixin ListPartsImpl on IOSSService {
             if (partNumberMarker != null)
               MapEntry('part-number-marker', partNumberMarker.toString()),
           ]);
-          final Uri uri = Uri.parse(
-            'https://$bucket.${client.config.endpoint}/$fileKey',
-          ).replace(queryParameters: operationQuery);
+          final Uri uri = client.buildOssUri(
+            bucket: params?.bucketName,
+            fileKey: fileKey,
+            queryParameters: operationQuery,
+          );
 
           final Map<String, dynamic> baseHeaders = {
             ...(params?.options?.headers ?? {}),

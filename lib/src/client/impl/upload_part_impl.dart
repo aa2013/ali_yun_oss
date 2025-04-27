@@ -75,14 +75,15 @@ mixin UploadPartImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final String bucket = params?.bucketName ?? client.config.bucketName;
         final Map<String, String> queryParameters = {
           'partNumber': partNumber.toString(),
           'uploadId': uploadId,
         };
-        final Uri uri = Uri.parse(
-          'https://$bucket.${client.config.endpoint}/$fileKey',
-        ).replace(queryParameters: queryParameters);
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: fileKey,
+          queryParameters: queryParameters,
+        );
 
         final Map<String, dynamic> baseHeaders = {
           ...(params?.options?.headers ?? {}),
@@ -155,14 +156,15 @@ mixin UploadPartImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken effectiveToken) async {
-        final String bucket = params?.bucketName ?? client.config.bucketName;
         final Map<String, String> queryParameters = {
           'partNumber': partNumber.toString(),
           'uploadId': uploadId,
         };
-        final Uri uri = Uri.parse(
-          'https://$bucket.${client.config.endpoint}/$fileKey',
-        ).replace(queryParameters: queryParameters);
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: fileKey,
+          queryParameters: queryParameters,
+        );
 
         final Map<String, dynamic> baseHeaders = {
           ...(params?.options?.headers ?? {}),

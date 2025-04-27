@@ -74,14 +74,15 @@ mixin CompleteMultipartUploadImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final String bucket = params?.bucketName ?? client.config.bucketName;
         final Map<String, String> queryParameters = {
           'uploadId': uploadId,
           if (encodingType != null) 'encoding-type': encodingType,
         };
-        final Uri uri = Uri.parse(
-          'https://$bucket.${client.config.endpoint}/$fileKey',
-        ).replace(queryParameters: queryParameters);
+        final Uri uri = client.buildOssUri(
+          bucket: params?.bucketName,
+          fileKey: fileKey,
+          queryParameters: queryParameters,
+        );
 
         // XML 相关常量
         // <?xml version="1.0" encoding="UTF-8"?> 等
