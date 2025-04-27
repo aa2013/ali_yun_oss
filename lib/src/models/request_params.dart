@@ -11,7 +11,8 @@ import 'package:dio/dio.dart';
 /// - 选择签名算法（V1或V4）
 /// - 提供自定义请求选项（头部、超时等）
 /// - 管理请求取消机制
-/// - 监控下载进度
+/// - 监控上传和下载进度
+/// - 设置查询参数（queryParameters）
 ///
 /// 示例：
 /// ```dart
@@ -19,6 +20,7 @@ import 'package:dio/dio.dart';
 ///   bucketName: 'custom-bucket',
 ///   isV1Signature: true,
 ///   options: Options(headers: {'x-oss-object-acl': 'private'}),
+///   queryParameters: {'uploadId': 'abc123', 'partNumber': '1'},
 ///   onReceiveProgress: (count, total) {
 ///     print('进度: ${count/total * 100}%');
 ///   },
@@ -74,6 +76,27 @@ class OSSRequestParams {
   /// 这在需要在UI上显示上传进度条时非常有用。
   final ProgressCallback? onSendProgress;
 
+  /// 查询参数
+  ///
+  /// 可选的查询参数，将被添加到请求URL中。
+  /// 这些参数将被用于构建URI，例如：
+  /// https://bucket.endpoint/fileKey?param1=value1&param2=value2
+  ///
+  /// 支持各种类型的值，非字符串类型的值将在构建URI时自动转换为字符串。
+  ///
+  /// 示例：
+  /// ```dart
+  /// final params = OSSRequestParams(
+  ///   queryParameters: {
+  ///     'uploadId': 'abc123',
+  ///     'partNumber': 1,
+  ///     'maxKeys': 100,
+  ///     'delimiter': '/',
+  ///   },
+  /// );
+  /// ```
+  final Map<String, dynamic>? queryParameters;
+
   /// 构造函数
   ///
   /// 创建一个新的 [OSSRequestParams] 实例，包含指定的参数。
@@ -86,6 +109,7 @@ class OSSRequestParams {
   /// - [cancelToken] 可选的取消令牌
   /// - [onReceiveProgress] 可选的下载进度回调
   /// - [onSendProgress] 可选的上传进度回调
+  /// - [queryParameters] 可选的查询参数
   const OSSRequestParams({
     this.bucketName,
     this.dateTime,
@@ -94,6 +118,7 @@ class OSSRequestParams {
     this.cancelToken,
     this.onReceiveProgress,
     this.onSendProgress,
+    this.queryParameters,
   });
 
   /// 创建一个包含可选修改的新实例
@@ -109,6 +134,7 @@ class OSSRequestParams {
   /// - [cancelToken] 新的取消令牌
   /// - [onReceiveProgress] 新的下载进度回调
   /// - [onSendProgress] 新的上传进度回调
+  /// - [queryParameters] 新的查询参数
   ///
   /// 返回一个新的 [OSSRequestParams] 实例
   ///
@@ -117,6 +143,7 @@ class OSSRequestParams {
   /// final newParams = params.copyWith(
   ///   bucketName: 'another-bucket',
   ///   options: Options(headers: {'x-oss-object-acl': 'public-read'}),
+  ///   queryParameters: {'uploadId': 'xyz789'},
   /// );
   /// ```
   OSSRequestParams copyWith({
@@ -127,6 +154,7 @@ class OSSRequestParams {
     CancelToken? cancelToken,
     ProgressCallback? onReceiveProgress,
     ProgressCallback? onSendProgress,
+    Map<String, dynamic>? queryParameters,
   }) {
     return OSSRequestParams(
       bucketName: bucketName ?? this.bucketName,
@@ -136,6 +164,7 @@ class OSSRequestParams {
       cancelToken: cancelToken ?? this.cancelToken,
       onReceiveProgress: onReceiveProgress ?? this.onReceiveProgress,
       onSendProgress: onSendProgress ?? this.onSendProgress,
+      queryParameters: queryParameters ?? this.queryParameters,
     );
   }
 
@@ -150,6 +179,7 @@ class OSSRequestParams {
         'options: $options, '
         'cancelToken: ${cancelToken != null ? '已设置' : '未设置'}, '
         'onReceiveProgress: ${onReceiveProgress != null ? '已设置' : '未设置'}, '
-        'onSendProgress: ${onSendProgress != null ? '已设置' : '未设置'})';
+        'onSendProgress: ${onSendProgress != null ? '已设置' : '未设置'}, '
+        'queryParameters: $queryParameters)';
   }
 }

@@ -78,34 +78,37 @@ mixin ListPartsImpl on IOSSService {
       params?.cancelToken,
       (CancelToken cancelToken) async {
         try {
-          // 预分配 Map 大小
-          final Map<String, String> operationQuery =
-              Map<String, String>.fromEntries([
-            MapEntry('uploadId', uploadId),
-            if (encodingType != null) MapEntry('encoding-type', encodingType),
-            if (maxParts != null) MapEntry('max-parts', maxParts.toString()),
+          // 准备查询参数
+          final Map<String, dynamic> operationQuery = {
+            'uploadId': uploadId,
+            if (encodingType != null) 'encoding-type': encodingType,
+            if (maxParts != null) 'max-parts': maxParts,
             if (partNumberMarker != null)
-              MapEntry('part-number-marker', partNumberMarker.toString()),
-          ]);
-          final Uri uri = client.buildOssUri(
-            bucket: params?.bucketName,
-            fileKey: fileKey,
+              'part-number-marker': partNumberMarker,
+          };
+
+          // 更新请求参数
+          final updatedParams = params ?? OSSRequestParams();
+          final paramsWithQuery = updatedParams.copyWith(
             queryParameters: operationQuery,
           );
 
+          final Uri uri = client.buildOssUri(
+            bucket: paramsWithQuery.bucketName,
+            fileKey: fileKey,
+            queryParameters: paramsWithQuery.queryParameters,
+          );
+
           final Map<String, dynamic> baseHeaders = {
-            ...(params?.options?.headers ?? {}),
+            ...(paramsWithQuery.options?.headers ?? {}),
           };
 
           final Map<String, dynamic> headers = client.createSignedHeaders(
             method: 'GET',
-            bucketName: params?.bucketName,
             fileKey: fileKey,
-            queryParameters: operationQuery,
             contentLength: null,
             baseHeaders: baseHeaders,
-            dateTime: params?.dateTime,
-            isV1Signature: params?.isV1Signature ?? false,
+            params: paramsWithQuery,
           );
 
           final Options requestOptions = (params?.options ?? Options())

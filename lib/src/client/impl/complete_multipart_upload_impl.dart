@@ -74,14 +74,22 @@ mixin CompleteMultipartUploadImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final Map<String, String> queryParameters = {
+        // 准备查询参数
+        final Map<String, dynamic> queryParams = {
           'uploadId': uploadId,
           if (encodingType != null) 'encoding-type': encodingType,
         };
+
+        // 更新请求参数
+        final updatedParams = params ?? OSSRequestParams();
+        final paramsWithQuery = updatedParams.copyWith(
+          queryParameters: queryParams,
+        );
+
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: paramsWithQuery.bucketName,
           fileKey: fileKey,
-          queryParameters: queryParameters,
+          queryParameters: paramsWithQuery.queryParameters,
         );
 
         // XML 相关常量
@@ -107,13 +115,10 @@ mixin CompleteMultipartUploadImpl on IOSSService {
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'POST',
-          bucketName: params?.bucketName,
           fileKey: fileKey,
-          queryParameters: {'uploadId': uploadId},
           contentLength: xmlBodyBytes.length,
           baseHeaders: baseHeaders,
-          dateTime: params?.dateTime,
-          isV1Signature: params?.isV1Signature ?? false,
+          params: paramsWithQuery,
         );
 
         final Options requestOptions = (params?.options ?? Options()).copyWith(

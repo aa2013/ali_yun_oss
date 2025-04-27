@@ -96,9 +96,13 @@ mixin PutObjectImpl on IOSSService {
           print('警告: 文件大小超过100MB,建议使用分片上传');
         }
 
+        // 更新请求参数
+        final updatedParams = params ?? OSSRequestParams();
+
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: updatedParams.bucketName,
           fileKey: fileKey,
+          queryParameters: updatedParams.queryParameters,
         );
 
         final Stream<List<int>> stream = file.openRead();
@@ -114,17 +118,15 @@ mixin PutObjectImpl on IOSSService {
 
         final Map<String, dynamic> baseHeaders = {
           ...ossHeaders,
-          ...(params?.options?.headers ?? {}),
+          ...(updatedParams.options?.headers ?? {}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'PUT',
-          bucketName: params?.bucketName,
           fileKey: fileKey,
           contentLength: contentLength,
           baseHeaders: baseHeaders,
-          dateTime: params?.dateTime,
-          isV1Signature: params?.isV1Signature ?? false,
+          params: updatedParams,
         );
 
         final Options requestOptions = (params?.options ?? Options()).copyWith(

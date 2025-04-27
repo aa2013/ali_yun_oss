@@ -70,22 +70,28 @@ mixin InitiateMultipartUploadImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
+        // 准备查询参数
+        final updatedParams = params ?? OSSRequestParams();
+        final paramsWithQuery = updatedParams.copyWith(
+          queryParameters: {'uploads': ''},
+        );
+
         // 使用 buildOssUri 构建 URI
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: paramsWithQuery.bucketName,
           fileKey: fileKey,
-          queryParameters: {'uploads': ''}, // 查询参数更清晰的表示
+          queryParameters: paramsWithQuery.queryParameters,
         );
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'POST',
-          bucketName: params?.bucketName,
+          bucketName: paramsWithQuery.bucketName,
           fileKey: fileKey,
-          queryParameters: {'uploads': ''},
           contentLength: 0,
-          baseHeaders: params?.options?.headers ?? {},
-          dateTime: params?.dateTime,
-          isV1Signature: params?.isV1Signature ?? false,
+          baseHeaders: paramsWithQuery.options?.headers ?? {},
+          dateTime: paramsWithQuery.dateTime,
+          isV1Signature: paramsWithQuery.isV1Signature,
+          params: paramsWithQuery,
         );
 
         final Options requestOptions = (params?.options ?? Options()).copyWith(

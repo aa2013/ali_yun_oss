@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -5,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/config/config.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/interfaces/sign_strategy.dart';
+import 'package:dart_aliyun_oss/src/models/models.dart';
 import 'package:dart_aliyun_oss/src/strategy/strategy.dart';
 import 'package:dart_aliyun_oss/src/utils/utils.dart';
 
@@ -305,7 +307,7 @@ class OSSClient
   /// 参数：
   /// - [bucket] OSS存储空间名称，如果不提供则使用配置中的默认值
   /// - [fileKey] OSS对象键（文件路径）
-  /// - [queryParameters] 可选的查询参数
+  /// - [queryParameters] 可选的查询参数，支持各种类型的值，非字符串类型会自动转换为字符串
   ///
   /// 返回构建好的URI对象
   ///
@@ -313,20 +315,51 @@ class OSSClient
   /// ```dart
   /// final uri = buildOssUri(
   ///   fileKey: 'example.txt',
-  ///   queryParameters: {'uploads': ''},
+  ///   queryParameters: {'uploads': '', 'partNumber': 1},
   /// );
-  /// // 结果: https://my-bucket.oss-cn-hangzhou.aliyuncs.com/example.txt?uploads=
+  /// // 结果: https://my-bucket.oss-cn-hangzhou.aliyuncs.com/example.txt?uploads=&partNumber=1
   /// ```
   Uri buildOssUri({
     String? bucket,
     required String fileKey,
-    Map<String, String>? queryParameters,
+    Map<String, dynamic>? queryParameters,
   }) {
     final String bucketName = bucket ?? config.bucketName;
+
+    // 将所有查询参数转换为字符串
+    Map<String, String>? stringQueryParams;
+    if (queryParameters != null && queryParameters.isNotEmpty) {
+      stringQueryParams = {};
+      queryParameters.forEach((key, value) {
+        if (value != null) {
+          // 根据不同类型进行安全转换
+          if (value is String) {
+            stringQueryParams![key] = value;
+          } else if (value is num || value is bool) {
+            // 数字和布尔值可以安全地转换为字符串
+            stringQueryParams![key] = value.toString();
+          } else if (value is List || value is Map) {
+            // 使用 jsonEncode 处理复杂类型
+            try {
+              stringQueryParams![key] = jsonEncode(value);
+            } catch (e) {
+              log('警告: 无法将复杂类型转换为JSON字符串: $e', level: 900);
+              // 回退到 toString 方法
+              stringQueryParams![key] = value.toString();
+            }
+          } else {
+            // 其他类型使用 toString，但记录警告
+            stringQueryParams![key] = value.toString();
+            log('警告: 将未知类型 ${value.runtimeType} 转换为字符串', level: 500);
+          }
+        }
+      });
+    }
+
     return Uri.https(
       '$bucketName.${config.endpoint}',
       fileKey,
-      queryParameters,
+      stringQueryParams,
     );
   }
 
@@ -354,6 +387,7 @@ class OSSClient
   /// - [baseHeaders] 基础请求头,将被扩展并签名
   /// - [dateTime] 用于签名的时间,如果不提供则使用当前时间
   /// - [isV1Signature] 是否使用 V1 签名算法,默认为 false（使用 V4 签名）
+  /// - [params] 可选的请求参数，如果提供，将使用其中的 queryParameters
   ///
   /// 返回包含完整签名头部的 Map,可直接用于 HTTP 请求。
   ///
@@ -370,11 +404,12 @@ class OSSClient
     String? bucketName,
     required String method,
     required String fileKey,
-    Map<String, String>? queryParameters,
+    Map<String, dynamic>? queryParameters,
     int? contentLength,
     required Map<String, dynamic> baseHeaders,
     DateTime? dateTime,
     bool isV1Signature = false,
+    OSSRequestParams? params,
   }) {
     // 验证必要参数
     if (fileKey.isEmpty) {
@@ -385,15 +420,22 @@ class OSSClient
     }
 
     // 准备参数
-    final String bucket = bucketName ?? config.bucketName;
-    final DateTime now = dateTime ?? DateTime.now().toUtc();
+    final String bucket = bucketName ?? params?.bucketName ?? config.bucketName;
+    final DateTime now = dateTime ?? params?.dateTime ?? DateTime.now().toUtc();
     final String date = HttpDate.format(now);
+
+    // 合并查询参数
+    Map<String, dynamic>? mergedQueryParams = queryParameters;
+    if (params?.queryParameters != null) {
+      mergedQueryParams = mergedQueryParams ?? {};
+      mergedQueryParams.addAll(params!.queryParameters!);
+    }
 
     // 构建URI
     final Uri uri = buildOssUri(
       bucket: bucket,
       fileKey: fileKey,
-      queryParameters: queryParameters,
+      queryParameters: mergedQueryParams,
     );
 
     // 尝试从 baseHeaders 获取 Content-Type

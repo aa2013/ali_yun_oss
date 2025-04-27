@@ -62,39 +62,42 @@ mixin ListMultipartUploadsImpl on IOSSService {
         }
 
         // 定义操作特定查询参数
-        final Map<String, String> operationQuery = {
+        final Map<String, dynamic> operationQuery = {
           'uploads': '', // 必须参数
           if (delimiter?.isNotEmpty ?? false) 'delimiter': delimiter!,
           if (encodingType?.isNotEmpty ?? false) 'encoding-type': encodingType!,
           if (keyMarker?.isNotEmpty ?? false) 'key-marker': keyMarker!,
-          if (maxUploads != null) 'max-uploads': maxUploads.toString(),
+          if (maxUploads != null) 'max-uploads': maxUploads,
           if (prefix?.isNotEmpty ?? false) 'prefix': prefix!,
           if (uploadIdMarker?.isNotEmpty ?? false)
             'upload-id-marker': uploadIdMarker!,
         };
 
+        // 更新请求参数
+        final updatedParams = params ?? OSSRequestParams();
+        final paramsWithQuery = updatedParams.copyWith(
+          queryParameters: operationQuery,
+        );
+
         // 构建包含操作特定查询参数的 URI (操作针对 Bucket 根)
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: paramsWithQuery.bucketName,
           fileKey: '', // 路径是根 '/'
-          queryParameters: operationQuery,
+          queryParameters: paramsWithQuery.queryParameters,
         );
 
         // 准备基础 Headers
         final Map<String, dynamic> baseHeaders = {
-          ...(params?.options?.headers ?? {}),
+          ...(paramsWithQuery.options?.headers ?? {}),
         };
 
         // 创建签名 Headers
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'GET',
-          bucketName: params?.bucketName,
           fileKey: '', // 操作针对 Bucket,fileKey 为空
-          queryParameters: operationQuery,
           contentLength: null, // GET 请求无 Content-Length
           baseHeaders: baseHeaders,
-          dateTime: params?.dateTime,
-          isV1Signature: params?.isV1Signature ?? false,
+          params: paramsWithQuery,
         );
 
         // 准备请求选项

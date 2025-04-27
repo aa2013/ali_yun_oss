@@ -50,25 +50,27 @@ mixin GetObjectImpl on IOSSService {
     return client.requestHandler.executeRequest(fileKey, params?.cancelToken, (
       CancelToken cancelToken,
     ) async {
+      // 更新请求参数
+      final updatedParams = params ?? OSSRequestParams();
+
       final Uri uri = client.buildOssUri(
-        bucket: params?.bucketName,
+        bucket: updatedParams.bucketName,
         fileKey: fileKey,
+        queryParameters: updatedParams.queryParameters,
       );
 
       final Map<String, dynamic> baseHeaders = {
         'Accept': 'application/octet-stream',
         'Cache-Control': 'no-cache', // 添加缓存控制
-        ...?params?.options?.headers, // 使用空安全展开运算符
+        ...?updatedParams.options?.headers, // 使用空安全展开运算符
       };
 
       // Access private method via the casted client instance
       final Map<String, dynamic> headers = client.createSignedHeaders(
         method: 'GET',
-        bucketName: params?.bucketName,
         fileKey: fileKey,
         baseHeaders: baseHeaders,
-        dateTime: params?.dateTime,
-        isV1Signature: params?.isV1Signature ?? false,
+        params: updatedParams,
       );
 
       final Options requestOptions = (params?.options ?? Options()).copyWith(
@@ -110,24 +112,26 @@ mixin GetObjectImpl on IOSSService {
       fileKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
+        // 更新请求参数
+        final updatedParams = params ?? OSSRequestParams();
+
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: updatedParams.bucketName,
           fileKey: fileKey,
+          queryParameters: updatedParams.queryParameters,
         );
 
         final Map<String, dynamic> baseHeaders = {
           'Accept': 'application/octet-stream',
           'Cache-Control': 'no-cache',
-          ...?params?.options?.headers,
+          ...?updatedParams.options?.headers,
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'GET',
-          bucketName: params?.bucketName,
           fileKey: fileKey,
           baseHeaders: baseHeaders,
-          dateTime: params?.dateTime,
-          isV1Signature: params?.isV1Signature ?? false,
+          params: updatedParams,
         );
 
         final Options requestOptions = (params?.options ?? Options()).copyWith(

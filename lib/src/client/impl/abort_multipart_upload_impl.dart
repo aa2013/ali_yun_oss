@@ -57,29 +57,33 @@ mixin AbortMultipartUploadImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final Map<String, String> queryParameters = {'uploadId': uploadId};
+        // 准备查询参数
+        final Map<String, dynamic> queryParams = {'uploadId': uploadId};
+
+        // 更新请求参数
+        final updatedParams = params ?? OSSRequestParams();
+        final paramsWithQuery = updatedParams.copyWith(
+          queryParameters: queryParams,
+        );
 
         // 使用 buildOssUri 构建更高效
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: paramsWithQuery.bucketName,
           fileKey: fileKey,
-          queryParameters: queryParameters,
+          queryParameters: paramsWithQuery.queryParameters,
         );
 
         // 复用基础请求头
         final Map<String, dynamic> baseHeaders = {
-          ...(params?.options?.headers ?? {}),
+          ...(paramsWithQuery.options?.headers ?? {}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'DELETE',
-          bucketName: params?.bucketName,
           fileKey: fileKey,
-          queryParameters: queryParameters,
           contentLength: 0,
           baseHeaders: baseHeaders,
-          dateTime: params?.dateTime,
-          isV1Signature: params?.isV1Signature ?? false,
+          params: paramsWithQuery,
         );
 
         final Options requestOptions = (params?.options ?? Options()).copyWith(

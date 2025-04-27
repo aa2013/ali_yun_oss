@@ -75,29 +75,34 @@ mixin UploadPartImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
-        final Map<String, String> queryParameters = {
-          'partNumber': partNumber.toString(),
+        // 准备查询参数
+        final Map<String, dynamic> queryParams = {
+          'partNumber': partNumber,
           'uploadId': uploadId,
         };
+
+        // 更新请求参数
+        final updatedParams = params ?? OSSRequestParams();
+        final paramsWithQuery = updatedParams.copyWith(
+          queryParameters: queryParams,
+        );
+
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: paramsWithQuery.bucketName,
           fileKey: fileKey,
-          queryParameters: queryParameters,
+          queryParameters: paramsWithQuery.queryParameters,
         );
 
         final Map<String, dynamic> baseHeaders = {
-          ...(params?.options?.headers ?? {}),
+          ...(paramsWithQuery.options?.headers ?? {}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'PUT',
-          bucketName: params?.bucketName,
           fileKey: fileKey,
-          queryParameters: queryParameters,
           contentLength: partData.length,
           baseHeaders: baseHeaders,
-          dateTime: params?.dateTime,
-          isV1Signature: params?.isV1Signature ?? false,
+          params: paramsWithQuery,
         );
 
         final Options requestOptions = (params?.options ?? Options()).copyWith(
@@ -156,29 +161,34 @@ mixin UploadPartImpl on IOSSService {
       requestKey,
       params?.cancelToken,
       (CancelToken effectiveToken) async {
-        final Map<String, String> queryParameters = {
-          'partNumber': partNumber.toString(),
+        // 准备查询参数
+        final Map<String, dynamic> queryParams = {
+          'partNumber': partNumber,
           'uploadId': uploadId,
         };
+
+        // 更新请求参数
+        final updatedParams = params ?? OSSRequestParams();
+        final paramsWithQuery = updatedParams.copyWith(
+          queryParameters: queryParams,
+        );
+
         final Uri uri = client.buildOssUri(
-          bucket: params?.bucketName,
+          bucket: paramsWithQuery.bucketName,
           fileKey: fileKey,
-          queryParameters: queryParameters,
+          queryParameters: paramsWithQuery.queryParameters,
         );
 
         final Map<String, dynamic> baseHeaders = {
-          ...(params?.options?.headers ?? {}),
+          ...(paramsWithQuery.options?.headers ?? {}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'PUT',
-          bucketName: params?.bucketName, // Pass bucketName
           fileKey: fileKey,
-          queryParameters: queryParameters,
           contentLength: contentLength,
           baseHeaders: baseHeaders,
-          dateTime: params?.dateTime, // Pass dateTime
-          isV1Signature: params?.isV1Signature ?? false, // Pass isV1Signature
+          params: paramsWithQuery,
         );
 
         final Options requestOptions = (params?.options ?? Options()).copyWith(
