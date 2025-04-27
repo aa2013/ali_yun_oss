@@ -104,6 +104,32 @@ Future<void> multipartUpload() async {
 }
 ```
 
+### Using Query Parameters
+
+```dart
+// List parts of a multipart upload with query parameters
+final response = await oss.listParts(
+  'example/large_file.mp4',
+  'your-upload-id',
+  params: OSSRequestParams(
+    queryParameters: {
+      'max-parts': 100,
+      'part-number-marker': 5,
+    },
+  ),
+);
+
+// Get object with specific version using query parameters
+final response = await oss.getObject(
+  'example/file.txt',
+  params: OSSRequestParams(
+    queryParameters: {
+      'versionId': 'your-version-id',
+    },
+  ),
+);
+```
+
 ### Generate Signed URL
 
 ```dart

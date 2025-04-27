@@ -2,6 +2,19 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.0.2
+
+### Code Refactoring and Interface Improvements
+- Added queryParameters parameter to OSSRequestParams class for unified query parameter handling
+- Refactored URI building logic into a dedicated buildOssUri method
+- Improved handling of complex query parameter types using jsonEncode
+- Updated all implementation classes to use the unified query parameter approach
+- Removed redundant URI construction code across implementation classes
+- Optimized createSignedHeaders method by removing uri parameter and adding queryParameters support
+
+### Bug Fixes
+- Updated repository links in package metadata
+
 ## 1.0.1
 
 ### Interface Improvements

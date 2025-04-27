@@ -102,6 +102,32 @@ Future<void> multipartUpload() async {
 }
 ```
 
+### 使用查询参数
+
+```dart
+// 使用查询参数列出分片上传的分片
+final response = await oss.listParts(
+  'example/large_file.mp4',
+  'your-upload-id',
+  params: OSSRequestParams(
+    queryParameters: {
+      'max-parts': 100,
+      'part-number-marker': 5,
+    },
+  ),
+);
+
+// 使用查询参数获取特定版本的对象
+final response = await oss.getObject(
+  'example/file.txt',
+  params: OSSRequestParams(
+    queryParameters: {
+      'versionId': 'your-version-id',
+    },
+  ),
+);
+```
+
 ### 生成签名URL
 
 ```dart

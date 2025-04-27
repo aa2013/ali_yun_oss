@@ -2,6 +2,19 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.0.2
+
+### 代码重构和接口改进
+- 在 OSSRequestParams 类中添加 queryParameters 参数，统一查询参数处理
+- 将 URI 构建逻辑重构为专用的 buildOssUri 方法
+- 使用 jsonEncode 改进复杂查询参数类型的处理
+- 更新所有实现类，使用统一的查询参数方式
+- 移除实现类中冗余的 URI 构建代码
+- 优化 createSignedHeaders 方法，移除 uri 参数并添加 queryParameters 支持
+
+### 错误修复
+- 更新包元数据中的仓库链接
+
 ## 1.0.1
 
 ### 接口改进
