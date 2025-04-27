@@ -31,3 +31,8 @@ example/downloaded/
 *.log
 *.bak
 *.tmp
+
+# Git 提交相关临时文件
+git_commit_message.txt
+*_commit_message.txt
+changelog_commit_message.txt
