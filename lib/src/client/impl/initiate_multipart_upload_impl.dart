@@ -83,7 +83,7 @@ mixin InitiateMultipartUploadImpl on IOSSService {
           method: 'POST',
           bucketName: params?.bucketName,
           fileKey: fileKey,
-          uri: uri,
+          queryParameters: {'uploads': ''},
           contentLength: 0,
           baseHeaders: params?.options?.headers ?? {},
           dateTime: params?.dateTime,

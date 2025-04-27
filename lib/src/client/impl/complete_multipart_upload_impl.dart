@@ -108,7 +108,7 @@ mixin CompleteMultipartUploadImpl on IOSSService {
           method: 'POST',
           bucketName: params?.bucketName,
           fileKey: fileKey,
-          uri: uri,
+          queryParameters: {'uploadId': uploadId},
           contentLength: xmlBodyBytes.length,
           baseHeaders: baseHeaders,
           dateTime: params?.dateTime,
@@ -121,19 +121,19 @@ mixin CompleteMultipartUploadImpl on IOSSService {
         );
 
         try {
-          final Response<dynamic> response = await client.requestHandler
-              .sendRequest(
-                uri: uri,
-                method: 'POST',
-                options: requestOptions,
-                data: xmlBodyBytes,
-                cancelToken: cancelToken,
-              );
+          final Response<dynamic> response =
+              await client.requestHandler.sendRequest(
+            uri: uri,
+            method: 'POST',
+            options: requestOptions,
+            data: xmlBodyBytes,
+            cancelToken: cancelToken,
+          );
 
           final CompleteMultipartUploadResult result =
               CompleteMultipartUploadResult.fromXmlString(
-                response.data as String,
-              );
+            response.data as String,
+          );
 
           // 验证响应结果
           if (result.location.isEmpty ||

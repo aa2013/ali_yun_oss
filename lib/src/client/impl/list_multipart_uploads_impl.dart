@@ -88,7 +88,7 @@ mixin ListMultipartUploadsImpl on IOSSService {
           method: 'GET',
           bucketName: params?.bucketName,
           fileKey: '', // 操作针对 Bucket,fileKey 为空
-          uri: uri,
+          queryParameters: operationQuery,
           contentLength: null, // GET 请求无 Content-Length
           baseHeaders: baseHeaders,
           dateTime: params?.dateTime,

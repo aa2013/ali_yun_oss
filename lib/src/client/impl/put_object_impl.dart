@@ -121,7 +121,6 @@ mixin PutObjectImpl on IOSSService {
           method: 'PUT',
           bucketName: params?.bucketName,
           fileKey: fileKey,
-          uri: uri,
           contentLength: contentLength,
           baseHeaders: baseHeaders,
           dateTime: params?.dateTime,

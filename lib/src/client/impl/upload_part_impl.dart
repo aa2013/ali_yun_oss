@@ -92,7 +92,7 @@ mixin UploadPartImpl on IOSSService {
           method: 'PUT',
           bucketName: params?.bucketName,
           fileKey: fileKey,
-          uri: uri,
+          queryParameters: queryParameters,
           contentLength: partData.length,
           baseHeaders: baseHeaders,
           dateTime: params?.dateTime,
@@ -172,7 +172,7 @@ mixin UploadPartImpl on IOSSService {
           method: 'PUT',
           bucketName: params?.bucketName, // Pass bucketName
           fileKey: fileKey,
-          uri: uri,
+          queryParameters: queryParameters,
           contentLength: contentLength,
           baseHeaders: baseHeaders,
           dateTime: params?.dateTime, // Pass dateTime

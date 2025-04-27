@@ -80,8 +80,8 @@ mixin ListPartsImpl on IOSSService {
         try {
           final String bucket = params?.bucketName ?? client.config.bucketName;
           // 预分配 Map 大小
-          final Map<String, String>
-          operationQuery = Map<String, String>.fromEntries([
+          final Map<String, String> operationQuery =
+              Map<String, String>.fromEntries([
             MapEntry('uploadId', uploadId),
             if (encodingType != null) MapEntry('encoding-type', encodingType),
             if (maxParts != null) MapEntry('max-parts', maxParts.toString()),
@@ -100,7 +100,7 @@ mixin ListPartsImpl on IOSSService {
             method: 'GET',
             bucketName: params?.bucketName,
             fileKey: fileKey,
-            uri: uri,
+            queryParameters: operationQuery,
             contentLength: null,
             baseHeaders: baseHeaders,
             dateTime: params?.dateTime,
@@ -110,16 +110,16 @@ mixin ListPartsImpl on IOSSService {
           final Options requestOptions = (params?.options ?? Options())
               .copyWith(headers: headers, responseType: ResponseType.plain);
 
-          final Response<dynamic> response = await client.requestHandler
-              .sendRequest(
-                uri: uri,
-                method: 'GET',
-                options: requestOptions,
-                data: null,
-                cancelToken: cancelToken,
-                onReceiveProgress: params?.onReceiveProgress,
-                onSendProgress: params?.onSendProgress,
-              );
+          final Response<dynamic> response =
+              await client.requestHandler.sendRequest(
+            uri: uri,
+            method: 'GET',
+            options: requestOptions,
+            data: null,
+            cancelToken: cancelToken,
+            onReceiveProgress: params?.onReceiveProgress,
+            onSendProgress: params?.onSendProgress,
+          );
 
           try {
             final ListPartsResult result = ListPartsResult.fromXmlString(

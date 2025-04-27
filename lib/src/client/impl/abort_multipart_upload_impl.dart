@@ -76,7 +76,7 @@ mixin AbortMultipartUploadImpl on IOSSService {
           method: 'DELETE',
           bucketName: params?.bucketName,
           fileKey: fileKey,
-          uri: uri,
+          queryParameters: queryParameters,
           contentLength: 0,
           baseHeaders: baseHeaders,
           dateTime: params?.dateTime,
@@ -90,14 +90,14 @@ mixin AbortMultipartUploadImpl on IOSSService {
           receiveTimeout: const Duration(seconds: 30),
         );
 
-        final Response<dynamic> response = await client.requestHandler
-            .sendRequest(
-              uri: uri,
-              method: 'DELETE',
-              options: requestOptions,
-              data: null,
-              cancelToken: cancelToken,
-            );
+        final Response<dynamic> response =
+            await client.requestHandler.sendRequest(
+          uri: uri,
+          method: 'DELETE',
+          options: requestOptions,
+          data: null,
+          cancelToken: cancelToken,
+        );
 
         return response;
       },

@@ -210,8 +210,7 @@ class OSSClient
       _instance.config = config;
 
       // 创建或使用提供的 Dio 实例
-      final Dio dio =
-          config.dio ??
+      final Dio dio = config.dio ??
           Dio(
             BaseOptions(
               connectTimeout: connectTimeout,
@@ -310,14 +309,15 @@ class OSSClient
   ///
   /// 内部实现过程：
   /// 1. 验证必要参数并准备标准化的头部
-  /// 2. 根据 [isV1Signature] 参数从 [_signStrategies] 映射中获取相应的签名策略
-  /// 3. 调用选定签名策略的 [signHeaders] 方法生成签名头
+  /// 2. 构建请求URI
+  /// 3. 根据 [isV1Signature] 参数从 [_signStrategies] 映射中获取相应的签名策略
+  /// 4. 调用选定签名策略的 [signHeaders] 方法生成签名头
   ///
   /// 参数：
   /// - [bucketName] 存储空间名称,如果不提供则使用配置中的默认值
   /// - [method] HTTP 请求方法（GET、PUT、POST 等）
   /// - [fileKey] OSS 对象键（文件路径）
-  /// - [uri] 请求的完整 URI
+  /// - [queryParameters] 可选的查询参数
   /// - [contentLength] 请求体长度（如果有）
   /// - [baseHeaders] 基础请求头,将被扩展并签名
   /// - [dateTime] 用于签名的时间,如果不提供则使用当前时间
@@ -330,7 +330,6 @@ class OSSClient
   /// final headers = client.createSignedHeaders(
   ///   method: 'GET',
   ///   fileKey: 'example.txt',
-  ///   uri: Uri.parse('https://my-bucket.oss-cn-hangzhou.aliyuncs.com/example.txt'),
   ///   baseHeaders: {'Accept': 'application/octet-stream'},
   ///   isV1Signature: false, // 使用 V4 签名（默认）
   /// );
@@ -339,7 +338,7 @@ class OSSClient
     String? bucketName,
     required String method,
     required String fileKey,
-    required Uri uri,
+    Map<String, String>? queryParameters,
     int? contentLength,
     required Map<String, dynamic> baseHeaders,
     DateTime? dateTime,
@@ -358,19 +357,23 @@ class OSSClient
     final DateTime now = dateTime ?? DateTime.now().toUtc();
     final String date = HttpDate.format(now);
 
+    // 构建URI
+    final Uri uri = Uri.https(
+      '$bucket.${config.endpoint}',
+      fileKey,
+      queryParameters,
+    );
+
     // 尝试从 baseHeaders 获取 Content-Type
     // 注意：大小写不敏感的头部处理
-    final String? headerContentType =
-        baseHeaders.entries
-                .firstWhere(
-                  (entry) => entry.key.toLowerCase() == 'content-type',
-                  orElse: () => const MapEntry('', null),
-                )
-                .value
-            as String?;
+    final String? headerContentType = baseHeaders.entries
+        .firstWhere(
+          (entry) => entry.key.toLowerCase() == 'content-type',
+          orElse: () => const MapEntry('', null),
+        )
+        .value as String?;
 
-    final String contentType =
-        headerContentType ??
+    final String contentType = headerContentType ??
         // 对于 POST application/xml,不应依赖 lookupMimeType
         'application/octet-stream'; // 提供一个默认值
 
