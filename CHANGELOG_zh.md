@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.0.4
+
+### 错误修复
+- 🐛 修复 `createSignedHeaders` 方法中的类型不匹配问题
+- 🔨 改进头部 content-type 提取逻辑，避免运行时类型错误
+
 ## 1.0.3
 
 ### 代码重构和接口改进

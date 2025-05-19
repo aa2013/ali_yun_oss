@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.0.4
+
+### Bug Fixes
+- 🐛 Fixed type mismatch in `createSignedHeaders` method
+- 🔨 Improved header content-type extraction to avoid runtime type errors
+
 ## 1.0.3
 
 ### Code Refactoring and Interface Improvements
