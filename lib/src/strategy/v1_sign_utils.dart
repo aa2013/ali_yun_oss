@@ -81,16 +81,19 @@ class AliOssV1SignUtils {
     final String date = HttpDate.format(now);
 
     // 处理安全令牌
-    final Map<String, dynamic> headers = {...ossHeaders ?? {}};
+    final Map<String, dynamic> headers = <String, dynamic>{
+      ...ossHeaders ?? <String, dynamic>{},
+    };
     if (securityToken != null) {
       headers['$_ossHeaderPrefix-security-token'] = securityToken;
     }
 
     // 2. 构建规范OSS头
-    final canonicalizedHeaders = _buildCanonicalizedHeaders(headers);
+    final String canonicalizedHeaders = _buildCanonicalizedHeaders(headers);
 
     // 3. 构建规范资源
-    final canonicalizedResource = _buildCanonicalizedResource(uri, bucket);
+    final String canonicalizedResource =
+        _buildCanonicalizedResource(uri, bucket);
 
     // 4. 构建待签名字符串
     String dateOrExpires;
@@ -104,7 +107,7 @@ class AliOssV1SignUtils {
       dateOrExpires = date;
     }
 
-    final stringToSign = [
+    final String stringToSign = <String>[
       method.toUpperCase(),
       contentMd5 ?? '',
       contentType ?? '',
@@ -114,7 +117,7 @@ class AliOssV1SignUtils {
     ].join('\n');
 
     // 5. 计算签名
-    final signature = _calculateSignature(accessKeySecret, stringToSign);
+    final String signature = _calculateSignature(accessKeySecret, stringToSign);
 
     // 6. 构建Authorization头
     return 'OSS $accessKeyId:$signature';
@@ -181,27 +184,29 @@ class AliOssV1SignUtils {
     DateTime? dateTime,
   }) {
     // 若有 header,从 header 中提取 x-oss-* 头并移除
-    final Map<String, dynamic> ossHeaders = {};
-    final Map<String, dynamic> resultHeaders = {...headers ?? {}};
+    final Map<String, dynamic> ossHeaders = <String, dynamic>{};
+    final Map<String, dynamic> resultHeaders = <String, dynamic>{
+      ...headers ?? <String, dynamic>{},
+    };
 
     if (resultHeaders.isNotEmpty) {
-      final keysToRemove = <String>[];
-      resultHeaders.forEach((key, value) {
-        final lowerKey = key.toLowerCase();
+      final List<String> keysToRemove = <String>[];
+      resultHeaders.forEach((String key, dynamic value) {
+        final String lowerKey = key.toLowerCase();
         if (lowerKey.startsWith(_ossHeaderPrefix)) {
           ossHeaders[lowerKey] = value;
           keysToRemove.add(key);
         }
       });
 
-      for (final key in keysToRemove) {
+      for (final String key in keysToRemove) {
         resultHeaders.remove(key);
       }
     }
 
     // 处理时间参数
     final DateTime now = dateTime ?? DateTime.now().toUtc();
-    final date = HttpDate.format(now);
+    final String date = HttpDate.format(now);
 
     // 构建OSS签名
     final String sign = signature(
@@ -215,11 +220,10 @@ class AliOssV1SignUtils {
       contentMd5: contentMd5,
       securityToken: securityToken,
       dateTime: now,
-      expires: null, // 不使用过期时间
     );
 
     // 组装最终请求头
-    final Map<String, dynamic> finalHeaders = {
+    final Map<String, dynamic> finalHeaders = <String, dynamic>{
       ...ossHeaders,
       if (contentType != null) 'content-type': contentType,
       if (contentLength != null) 'content-length': contentLength,
@@ -247,25 +251,32 @@ class AliOssV1SignUtils {
   ///
   /// 返回规范化的OSS头部字符串,如果没有相关头部则返回空字符串
   static String _buildCanonicalizedHeaders(Map<String, dynamic> headers) {
-    if (headers.isEmpty) return '';
+    if (headers.isEmpty) {
+      return '';
+    }
 
-    final entries =
-        headers.entries
-            .where(
-              (entry) => entry.key.toLowerCase().startsWith(_ossHeaderPrefix),
-            )
-            .map(
-              (entry) => MapEntry(
-                entry.key.toLowerCase(),
-                (entry.value?.toString() ?? '').trim(),
-              ),
-            )
-            .toList()
-          ..sort((a, b) => a.key.compareTo(b.key));
+    final List<MapEntry<String, String>> entries = headers.entries
+        .where(
+          (MapEntry<String, dynamic> entry) =>
+              entry.key.toLowerCase().startsWith(_ossHeaderPrefix),
+        )
+        .map(
+          (MapEntry<String, dynamic> entry) => MapEntry<String, String>(
+            entry.key.toLowerCase(),
+            (entry.value?.toString() ?? '').trim(),
+          ),
+        )
+        .toList()
+      ..sort(
+        (MapEntry<String, String> a, MapEntry<String, String> b) =>
+            a.key.compareTo(b.key),
+      );
 
-    final buffer = StringBuffer();
-    for (var i = 0; i < entries.length; i++) {
-      if (i > 0) buffer.write('\n');
+    final StringBuffer buffer = StringBuffer();
+    for (int i = 0; i < entries.length; i++) {
+      if (i > 0) {
+        buffer.write('\n');
+      }
       buffer.write('${entries[i].key}:${entries[i].value}');
     }
 
@@ -289,7 +300,7 @@ class AliOssV1SignUtils {
   /// 返回规范化的资源路径字符串
   static String _buildCanonicalizedResource(Uri uri, String bucket) {
     // 检查 uri.path 是否已经包含 bucket 名称
-    String path = uri.path;
+    final String path = uri.path;
     if (path.startsWith('/$bucket/')) {
       // 如果路径已经包含 bucket 名称,则不需要再添加
       return Uri.decodeFull(
@@ -403,7 +414,7 @@ class AliOssV1SignUtils {
     // 4. 构建待签名字符串
     // 根据阿里云文档和成功的简化版实现，签名字符串的格式应该是：
     // VERB + "\n" + CONTENT-MD5 + "\n" + CONTENT-TYPE + "\n" + EXPIRES + "\n" + CanonicalizedResource
-    final String stringToSign = [
+    final String stringToSign = <String>[
       method.toUpperCase(),
       contentMd5 ?? '',
       contentType ?? '',
@@ -415,7 +426,7 @@ class AliOssV1SignUtils {
     final String signature = _calculateSignature(accessKeySecret, stringToSign);
 
     // 6. 构建查询参数
-    final Map<String, String> queryParams = {
+    final Map<String, String> queryParams = <String, String>{
       'OSSAccessKeyId': accessKeyId,
       'Expires': expiresTimestamp.toString(),
       'Signature': signature,
@@ -428,10 +439,10 @@ class AliOssV1SignUtils {
 
     // 8. 添加其他查询参数（如果有）
     if (ossHeaders != null && ossHeaders.isNotEmpty) {
-      ossHeaders.forEach((key, value) {
+      ossHeaders.forEach((String key, dynamic value) {
         if (key.startsWith(_ossHeaderPrefix)) {
           // 将 x-oss- 前缀的头部添加为查询参数
-          final paramKey = key.replaceAll('$_ossHeaderPrefix-', '');
+          final String paramKey = key.replaceAll('$_ossHeaderPrefix-', '');
           queryParams[paramKey] = value.toString();
         }
       });

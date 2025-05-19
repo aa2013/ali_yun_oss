@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.0.3
+
+### Code Refactoring and Interface Improvements
+- ✨ Bump version to 1.0.3
+- 🔨 Optimized createSignedHeaders method
+
 ## 1.0.2
 
 ### Code Refactoring and Interface Improvements

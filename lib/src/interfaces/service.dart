@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 // 定义回调类型 (如果尚未定义)
 typedef PartProgressCallback = void Function(
-    int partNumber, int count, int total);
+    int partNumber, int count, int total,);
 
 mixin IOSSService {
   // -------------------- 基础操作 Section --------------------

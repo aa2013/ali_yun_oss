@@ -18,8 +18,6 @@ import 'request_manager.dart';
 /// 内部使用 [Dio] 客户端进行实际的网络请求,并与 [OSSRequestManager] 协同工作
 /// 管理请求的取消令牌。
 class OSSRequestHandler {
-  final Dio _dio;
-  final OSSRequestManager _requestManager;
 
   /// 构造函数
   ///
@@ -29,6 +27,8 @@ class OSSRequestHandler {
   /// - [_dio] 用于执行 HTTP 请求的 Dio 实例,应已配置好适当的超时和拦截器
   /// - [_requestManager] 请求管理器实例,用于管理请求的取消令牌
   OSSRequestHandler(this._dio, this._requestManager);
+  final Dio _dio;
+  final OSSRequestManager _requestManager;
 
   /// 封装请求执行逻辑,处理 CancelToken 和资源清理
   ///
@@ -63,12 +63,12 @@ class OSSRequestHandler {
 
     // 记录请求开始
     log('OSS 请求开始: $requestKey');
-    final stopwatch = Stopwatch()..start();
+    final Stopwatch stopwatch = Stopwatch()..start();
 
     try {
       // 使用 try-catch 块包裹实际的请求执行
       try {
-        final result = await requestExecutor(effectiveToken);
+        final T result = await requestExecutor(effectiveToken);
         // 记录成功完成的请求
         log('OSS 请求成功: $requestKey (耗时: ${stopwatch.elapsedMilliseconds}ms)');
         return result;

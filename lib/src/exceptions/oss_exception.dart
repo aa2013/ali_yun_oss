@@ -34,52 +34,6 @@ import 'error_type.dart';
 /// }
 /// ```
 class OSSException implements Exception {
-  /// 错误的类型
-  ///
-  /// 使用 [OSSErrorType] 枚举来分类错误,便于客户端代码进行错误处理和恢复。
-  /// 可以使用 switch 语句根据错误类型执行不同的处理逻辑。
-  final OSSErrorType type;
-
-  /// 错误描述信息
-  ///
-  /// 提供了关于错误的详细文字描述,适合在日志中记录或展示给用户。
-  /// 这个字段始终会被设置,并包含关于错误的有用信息。
-  final String message;
-
-  /// 原始的 Dio 响应对象 (如果可用)
-  ///
-  /// 当错误与 HTTP 响应相关时,这个字段包含原始的 [Response] 对象。
-  /// 可以从中获取状态码、响应头、响应体等详细信息。
-  /// 在网络错误或请求未到达服务器时,该字段可能为 null。
-  final Response? response;
-
-  /// 导致错误的原始异常 (如果可用)
-  ///
-  /// 当 [OSSException] 是由另一个异常引起的,这个字段包含原始的异常对象。
-  /// 常见的原始异常类型包括 [DioException]、[FileSystemException] 等。
-  /// 这对于调试和错误分析非常有用。
-  final Object? originalError;
-
-  /// 导致错误的请求选项 (如果可用)
-  ///
-  /// 包含导致错误的请求的详细信息,如 URL、方法、头部等。
-  /// 当错误发生在请求发送前或请求过程中时,这个字段包含 [RequestOptions] 对象。
-  /// 如果错误与特定请求无关,该字段可能为 null。
-  final RequestOptions? requestOptions;
-
-  /// OSS 返回的特定错误码 (从响应体解析,如果可用)
-  ///
-  /// 当阿里云OSS服务器返回错误时,会提供一个特定的错误码,如 'AccessDenied'、'NoSuchKey' 等。
-  /// 这个字段包含从 XML 响应中提取的错误码,可用于更精确地识别错误原因。
-  /// 如果响应中没有错误码或无法解析,该字段为 null。
-  final String? ossErrorCode;
-
-  /// HTTP 状态码 (从响应提取,如果可用)
-  ///
-  /// 当错误与 HTTP 响应相关时,这个属性提供了 HTTP 状态码,如 403（禁止访问）、404（不存在）等。
-  /// 这是从 [response] 对象中提取的便捷属性。
-  /// 如果 [response] 为 null,该属性也为 null。
-  int? get statusCode => response?.statusCode;
 
   /// 创建一个新的 OSS 异常
   ///
@@ -228,6 +182,52 @@ class OSSException implements Exception {
       originalError: error,
     );
   }
+  /// 错误的类型
+  ///
+  /// 使用 [OSSErrorType] 枚举来分类错误,便于客户端代码进行错误处理和恢复。
+  /// 可以使用 switch 语句根据错误类型执行不同的处理逻辑。
+  final OSSErrorType type;
+
+  /// 错误描述信息
+  ///
+  /// 提供了关于错误的详细文字描述,适合在日志中记录或展示给用户。
+  /// 这个字段始终会被设置,并包含关于错误的有用信息。
+  final String message;
+
+  /// 原始的 Dio 响应对象 (如果可用)
+  ///
+  /// 当错误与 HTTP 响应相关时,这个字段包含原始的 [Response] 对象。
+  /// 可以从中获取状态码、响应头、响应体等详细信息。
+  /// 在网络错误或请求未到达服务器时,该字段可能为 null。
+  final Response<dynamic>? response;
+
+  /// 导致错误的原始异常 (如果可用)
+  ///
+  /// 当 [OSSException] 是由另一个异常引起的,这个字段包含原始的异常对象。
+  /// 常见的原始异常类型包括 [DioException]、[FileSystemException] 等。
+  /// 这对于调试和错误分析非常有用。
+  final Object? originalError;
+
+  /// 导致错误的请求选项 (如果可用)
+  ///
+  /// 包含导致错误的请求的详细信息,如 URL、方法、头部等。
+  /// 当错误发生在请求发送前或请求过程中时,这个字段包含 [RequestOptions] 对象。
+  /// 如果错误与特定请求无关,该字段可能为 null。
+  final RequestOptions? requestOptions;
+
+  /// OSS 返回的特定错误码 (从响应体解析,如果可用)
+  ///
+  /// 当阿里云OSS服务器返回错误时,会提供一个特定的错误码,如 'AccessDenied'、'NoSuchKey' 等。
+  /// 这个字段包含从 XML 响应中提取的错误码,可用于更精确地识别错误原因。
+  /// 如果响应中没有错误码或无法解析,该字段为 null。
+  final String? ossErrorCode;
+
+  /// HTTP 状态码 (从响应提取,如果可用)
+  ///
+  /// 当错误与 HTTP 响应相关时,这个属性提供了 HTTP 状态码,如 403（禁止访问）、404（不存在）等。
+  /// 这是从 [response] 对象中提取的便捷属性。
+  /// 如果 [response] 为 null,该属性也为 null。
+  int? get statusCode => response?.statusCode;
 
   @override
   /// 返回异常的字符串表示

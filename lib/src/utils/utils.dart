@@ -8,8 +8,8 @@ import 'package:dio/dio.dart';
 
 export 'date_formatter.dart';
 export 'lock.dart';
-export 'semaphore.dart';
 export 'oss_log_interceptor.dart';
+export 'semaphore.dart';
 
 /// 阿里云OSS工具类
 ///
@@ -99,7 +99,7 @@ class OSSUtils {
       partSize = (totalFileSize / numParts).ceil();
     } else {
       // 未指定分片数,使用自适应分片大小
-      final adaptedPartSize = adaptivePartSize(totalFileSize);
+      final int adaptedPartSize = adaptivePartSize(totalFileSize);
       numParts = (totalFileSize / adaptedPartSize).ceil();
       numParts = numParts.clamp(1, maxParts); // 限制最大数量
       partSize = (totalFileSize / numParts).ceil();
@@ -197,8 +197,12 @@ class OSSUtils {
         return OSSErrorType.requestCancelled;
       }
       // 可以根据 status code 补充判断
-      if (error.response?.statusCode == 403) return OSSErrorType.accessDenied;
-      if (error.response?.statusCode == 404) return OSSErrorType.notFound;
+      if (error.response?.statusCode == 403) {
+        return OSSErrorType.accessDenied;
+      }
+      if (error.response?.statusCode == 404) {
+        return OSSErrorType.notFound;
+      }
       if (error.response?.statusCode != null &&
           error.response!.statusCode! >= 500) {
         return OSSErrorType.serverError;

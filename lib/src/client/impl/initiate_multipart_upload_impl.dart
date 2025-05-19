@@ -1,8 +1,8 @@
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 mixin InitiateMultipartUploadImpl on IOSSService {
   /// 初始化分片上传
@@ -50,19 +50,19 @@ mixin InitiateMultipartUploadImpl on IOSSService {
   }) async {
     // 参数验证
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能为空',
       );
     }
     if (fileKey.startsWith('/')) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能以 "/" 开头',
       );
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     final String requestKey =
         'init_${fileKey}_${DateTime.now().millisecondsSinceEpoch}';
 
@@ -71,9 +71,10 @@ mixin InitiateMultipartUploadImpl on IOSSService {
       params?.cancelToken,
       (CancelToken cancelToken) async {
         // 准备查询参数
-        final updatedParams = params ?? OSSRequestParams();
-        final paramsWithQuery = updatedParams.copyWith(
-          queryParameters: {'uploads': ''},
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
+        final OSSRequestParams paramsWithQuery = updatedParams.copyWith(
+          queryParameters: <String, dynamic>{'uploads': ''},
         );
 
         // 使用 buildOssUri 构建 URI
@@ -88,7 +89,7 @@ mixin InitiateMultipartUploadImpl on IOSSService {
           bucketName: paramsWithQuery.bucketName,
           fileKey: fileKey,
           contentLength: 0,
-          baseHeaders: paramsWithQuery.options?.headers ?? {},
+          baseHeaders: paramsWithQuery.options?.headers ?? <String, dynamic>{},
           dateTime: paramsWithQuery.dateTime,
           isV1Signature: paramsWithQuery.isV1Signature,
           params: paramsWithQuery,
@@ -105,7 +106,6 @@ mixin InitiateMultipartUploadImpl on IOSSService {
             uri: uri,
             method: 'POST',
             options: requestOptions,
-            data: null,
             cancelToken: cancelToken,
             onReceiveProgress: params?.onReceiveProgress,
             onSendProgress: params?.onSendProgress,

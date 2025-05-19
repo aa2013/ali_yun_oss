@@ -6,23 +6,6 @@
 /// 该类主要用于解析 ListMultipartUploads 操作返回的结果,
 /// 帮助开发者管理和监控正在进行的分片上传任务。
 class UploadInfo {
-  /// 目标文件的对象名称
-  ///
-  /// 分片上传的目标文件在OSS中的完整路径和名称（Object Key）。
-  /// 这个字段可以用于识别和管理特定文件的分片上传任务。
-  final String key;
-
-  /// 分片上传事件的ID
-  ///
-  /// 由阿里云OSS生成的全局唯一标识符,用于标识特定的分片上传任务。
-  /// 这个 ID 在上传分片、完成或取消分片上传时需要提供。
-  final String uploadId;
-
-  /// 分片上传事件初始化的时间
-  ///
-  /// 分片上传任务创建的时间,采用 ISO8601 格式。
-  /// 这个字段可以用于识别长时间未完成的上传任务,以便清理资源。
-  final DateTime initiated;
 
   /// 构造函数
   ///
@@ -77,6 +60,23 @@ class UploadInfo {
 
     return UploadInfo(key: key, uploadId: uploadId, initiated: initiated);
   }
+  /// 目标文件的对象名称
+  ///
+  /// 分片上传的目标文件在OSS中的完整路径和名称（Object Key）。
+  /// 这个字段可以用于识别和管理特定文件的分片上传任务。
+  final String key;
+
+  /// 分片上传事件的ID
+  ///
+  /// 由阿里云OSS生成的全局唯一标识符,用于标识特定的分片上传任务。
+  /// 这个 ID 在上传分片、完成或取消分片上传时需要提供。
+  final String uploadId;
+
+  /// 分片上传事件初始化的时间
+  ///
+  /// 分片上传任务创建的时间,采用 ISO8601 格式。
+  /// 这个字段可以用于识别长时间未完成的上传任务,以便清理资源。
+  final DateTime initiated;
 
   /// 返回实例的字符串表示
   ///

@@ -1,8 +1,8 @@
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 /// GetObjectImpl 是阿里云 OSS 获取对象操作的实现
 ///
@@ -39,19 +39,19 @@ mixin GetObjectImpl on IOSSService {
   }) async {
     // 参数验证
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能为空',
       );
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
 
     return client.requestHandler.executeRequest(fileKey, params?.cancelToken, (
       CancelToken cancelToken,
     ) async {
       // 更新请求参数
-      final updatedParams = params ?? OSSRequestParams();
+      final OSSRequestParams updatedParams = params ?? const OSSRequestParams();
 
       final Uri uri = client.buildOssUri(
         bucket: updatedParams.bucketName,
@@ -59,7 +59,7 @@ mixin GetObjectImpl on IOSSService {
         queryParameters: updatedParams.queryParameters,
       );
 
-      final Map<String, dynamic> baseHeaders = {
+      final Map<String, dynamic> baseHeaders = <String, dynamic>{
         'Accept': 'application/octet-stream',
         'Cache-Control': 'no-cache', // 添加缓存控制
         ...?updatedParams.options?.headers, // 使用空安全展开运算符
@@ -78,7 +78,8 @@ mixin GetObjectImpl on IOSSService {
         responseType: ResponseType.bytes,
       );
 
-      return client.requestHandler.sendRequest(
+      final Response<dynamic> response =
+          await client.requestHandler.sendRequest(
         uri: uri,
         method: 'GET',
         options: requestOptions,
@@ -86,6 +87,8 @@ mixin GetObjectImpl on IOSSService {
         onReceiveProgress: params?.onReceiveProgress,
         onSendProgress: params?.onSendProgress,
       );
+
+      return response;
     });
   }
 
@@ -100,20 +103,21 @@ mixin GetObjectImpl on IOSSService {
   }) async {
     // 参数验证
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能为空',
       );
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
 
     return client.requestHandler.executeRequest<Response<Stream<List<int>>>>(
       fileKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
         // 更新请求参数
-        final updatedParams = params ?? OSSRequestParams();
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
 
         final Uri uri = client.buildOssUri(
           bucket: updatedParams.bucketName,
@@ -121,7 +125,7 @@ mixin GetObjectImpl on IOSSService {
           queryParameters: updatedParams.queryParameters,
         );
 
-        final Map<String, dynamic> baseHeaders = {
+        final Map<String, dynamic> baseHeaders = <String, dynamic>{
           'Accept': 'application/octet-stream',
           'Cache-Control': 'no-cache',
           ...?updatedParams.options?.headers,
@@ -139,7 +143,8 @@ mixin GetObjectImpl on IOSSService {
           responseType: ResponseType.stream,
         );
 
-        final response = await client.requestHandler.sendRequest(
+        final Response<dynamic> response =
+            await client.requestHandler.sendRequest(
           uri: uri,
           method: 'GET',
           options: requestOptions,

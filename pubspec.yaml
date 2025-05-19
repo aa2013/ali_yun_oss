@@ -1,6 +1,6 @@
 name: dart_aliyun_oss
 description: Dart client SDK for Alibaba Cloud Object Storage Service (OSS). Supports file upload, download, multipart upload, signed URLs and more.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/lvyandev/ali_yun_oss
 repository: https://github.com/lvyandev/ali_yun_oss
 issue_tracker: https://github.com/lvyandev/ali_yun_oss/issues
@@ -37,9 +37,9 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  dio: ^5.8.0+1
-  crypto: ^3.0.6
   convert: ^3.1.1
+  crypto: ^3.0.6
+  dio: ^5.8.0+1
 
 dev_dependencies:
   lints: ^5.1.1

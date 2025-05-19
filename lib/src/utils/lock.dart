@@ -28,7 +28,7 @@ class Lock {
   bool _locked = false;
 
   /// 等待获取锁的队列
-  final List<Completer<void>> _waitQueue = [];
+  final List<Completer<void>> _waitQueue = <Completer<void>>[];
 
   /// 在锁的保护下执行函数。
   ///
@@ -57,7 +57,7 @@ class Lock {
       return;
     }
 
-    final completer = Completer<void>();
+    final Completer<void> completer = Completer<void>();
     _waitQueue.add(completer);
     return completer.future;
   }
@@ -67,7 +67,7 @@ class Lock {
   /// 如果有等待的调用者,将唤醒队列中的第一个。
   void _release() {
     if (_waitQueue.isNotEmpty) {
-      final completer = _waitQueue.removeAt(0);
+      final Completer<void> completer = _waitQueue.removeAt(0);
       completer.complete();
     } else {
       _locked = false;

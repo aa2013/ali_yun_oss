@@ -1,8 +1,8 @@
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 mixin ListPartsImpl on IOSSService {
   /// 列出已上传的分片
@@ -44,31 +44,31 @@ mixin ListPartsImpl on IOSSService {
   }) async {
     // 参数验证
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能为空',
       );
     }
     if (uploadId.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'Upload ID 不能为空',
       );
     }
     if (maxParts != null && (maxParts < 1 || maxParts > 1000)) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'maxParts 必须在 1-1000 之间',
       );
     }
     if (partNumberMarker != null && partNumberMarker < 0) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'partNumberMarker 不能小于 0',
       );
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     // 使用更简洁的 requestKey
     final String requestKey =
         'list_parts_${DateTime.now().millisecondsSinceEpoch}';
@@ -79,7 +79,7 @@ mixin ListPartsImpl on IOSSService {
       (CancelToken cancelToken) async {
         try {
           // 准备查询参数
-          final Map<String, dynamic> operationQuery = {
+          final Map<String, dynamic> operationQuery = <String, dynamic>{
             'uploadId': uploadId,
             if (encodingType != null) 'encoding-type': encodingType,
             if (maxParts != null) 'max-parts': maxParts,
@@ -88,8 +88,9 @@ mixin ListPartsImpl on IOSSService {
           };
 
           // 更新请求参数
-          final updatedParams = params ?? OSSRequestParams();
-          final paramsWithQuery = updatedParams.copyWith(
+          final OSSRequestParams updatedParams =
+              params ?? const OSSRequestParams();
+          final OSSRequestParams paramsWithQuery = updatedParams.copyWith(
             queryParameters: operationQuery,
           );
 
@@ -99,14 +100,13 @@ mixin ListPartsImpl on IOSSService {
             queryParameters: paramsWithQuery.queryParameters,
           );
 
-          final Map<String, dynamic> baseHeaders = {
-            ...(paramsWithQuery.options?.headers ?? {}),
+          final Map<String, dynamic> baseHeaders = <String, dynamic>{
+            ...(paramsWithQuery.options?.headers ?? <String, dynamic>{}),
           };
 
           final Map<String, dynamic> headers = client.createSignedHeaders(
             method: 'GET',
             fileKey: fileKey,
-            contentLength: null,
             baseHeaders: baseHeaders,
             params: paramsWithQuery,
           );
@@ -119,7 +119,6 @@ mixin ListPartsImpl on IOSSService {
             uri: uri,
             method: 'GET',
             options: requestOptions,
-            data: null,
             cancelToken: cancelToken,
             onReceiveProgress: params?.onReceiveProgress,
             onSendProgress: params?.onSendProgress,

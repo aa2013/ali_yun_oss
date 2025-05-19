@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'part_info.dart';
 
 /// 阿里云OSS列出分片请求的结果模型
@@ -44,61 +46,6 @@ import 'part_info.dart';
 /// }
 /// ```
 class ListPartsResult {
-  /// 存储空间名称
-  ///
-  /// 分片上传所在的阿里云OSS存储空间（Bucket）名称。
-  final String bucket;
-
-  /// 文件键（路径）
-  ///
-  /// 要上传的文件在OSS中的完整路径和名称（Object Key）。
-  final String key;
-
-  /// 分片上传ID
-  ///
-  /// 由阿里云OSS生成的全局唯一标识符,用于标识这个分片上传任务。
-  /// 这个 ID 在上传分片、完成或取消分片上传操作中必须提供。
-  final String uploadId;
-
-  /// 分片编号起始位置
-  ///
-  /// 本次请求中指定的 partNumberMarker 参数值。
-  /// 列表从该值之后的分片开始返回。
-  /// 如果请求中没有指定该参数,则为 null。
-  final int? partNumberMarker;
-
-  /// 下一个分片编号起始位置
-  ///
-  /// 如果返回的结果被截断（[isTruncated] 为 true）,这个值表示下一次请求应该使用的 partNumberMarker 参数值。
-  /// 如果结果未被截断,则为 null。
-  final int? nextPartNumberMarker;
-
-  /// 返回的最大分片数
-  ///
-  /// 本次请求中指定的或默认的最大返回数量。
-  /// 这个值决定了单次响应中最多返回多少个分片。
-  final int maxParts;
-
-  /// 列表是否被截断
-  ///
-  /// 指示返回的结果是否被截断（即还有更多的分片未返回）。
-  /// - true: 还有更多的分片未返回,可以使用 [nextPartNumberMarker] 继续查询
-  /// - false: 所有的分片已经返回
-  final bool isTruncated;
-
-  /// 编码类型
-  ///
-  /// 指定响应中返回的内容的编码方式。
-  /// 当请求中指定了 encodingType 参数时（如 'url'）,这里会返回相应的编码类型。
-  /// 如果请求中未指定,则为 null。
-  final String? encodingType;
-
-  /// 分片列表
-  ///
-  /// 包含所有符合查询条件的已上传分片的详细信息。
-  /// 每个元素都是一个 [PartInfo] 对象,包含了分片编号、ETag、大小和上传时间等信息。
-  /// 这些信息可用于完成分片上传操作。
-  final List<PartInfo> parts;
 
   /// 构造函数
   ///
@@ -174,7 +121,7 @@ class ListPartsResult {
         uploadId == null ||
         maxPartsStr == null ||
         isTruncatedStr == null) {
-      throw FormatException('Invalid XML format: Missing required fields');
+      throw const FormatException('Invalid XML format: Missing required fields');
     }
 
     final int? maxParts = int.tryParse(maxPartsStr);
@@ -191,7 +138,7 @@ class ListPartsResult {
             : null;
 
     // 解析Part列表
-    final List<PartInfo> parts = [];
+    final List<PartInfo> parts = <PartInfo>[];
     final Iterable<RegExpMatch> partMatches = RegExp(
       r'<Part>(.*?)</Part>',
       dotAll: true,
@@ -199,8 +146,8 @@ class ListPartsResult {
     for (final RegExpMatch match in partMatches) {
       try {
         parts.add(PartInfo.fromXmlFragment(match.group(1)!));
-      } catch (e) {
-        print('Error parsing Part fragment: $e');
+      } catch (e, stackTrace) {
+        log('Error parsing Part fragment: $e', name: 'ListPartsResult', stackTrace: stackTrace, level: 1000,);
       }
     }
 
@@ -216,6 +163,61 @@ class ListPartsResult {
       parts: parts,
     );
   }
+  /// 存储空间名称
+  ///
+  /// 分片上传所在的阿里云OSS存储空间（Bucket）名称。
+  final String bucket;
+
+  /// 文件键（路径）
+  ///
+  /// 要上传的文件在OSS中的完整路径和名称（Object Key）。
+  final String key;
+
+  /// 分片上传ID
+  ///
+  /// 由阿里云OSS生成的全局唯一标识符,用于标识这个分片上传任务。
+  /// 这个 ID 在上传分片、完成或取消分片上传操作中必须提供。
+  final String uploadId;
+
+  /// 分片编号起始位置
+  ///
+  /// 本次请求中指定的 partNumberMarker 参数值。
+  /// 列表从该值之后的分片开始返回。
+  /// 如果请求中没有指定该参数,则为 null。
+  final int? partNumberMarker;
+
+  /// 下一个分片编号起始位置
+  ///
+  /// 如果返回的结果被截断（[isTruncated] 为 true）,这个值表示下一次请求应该使用的 partNumberMarker 参数值。
+  /// 如果结果未被截断,则为 null。
+  final int? nextPartNumberMarker;
+
+  /// 返回的最大分片数
+  ///
+  /// 本次请求中指定的或默认的最大返回数量。
+  /// 这个值决定了单次响应中最多返回多少个分片。
+  final int maxParts;
+
+  /// 列表是否被截断
+  ///
+  /// 指示返回的结果是否被截断（即还有更多的分片未返回）。
+  /// - true: 还有更多的分片未返回,可以使用 [nextPartNumberMarker] 继续查询
+  /// - false: 所有的分片已经返回
+  final bool isTruncated;
+
+  /// 编码类型
+  ///
+  /// 指定响应中返回的内容的编码方式。
+  /// 当请求中指定了 encodingType 参数时（如 'url'）,这里会返回相应的编码类型。
+  /// 如果请求中未指定,则为 null。
+  final String? encodingType;
+
+  /// 分片列表
+  ///
+  /// 包含所有符合查询条件的已上传分片的详细信息。
+  /// 每个元素都是一个 [PartInfo] 对象,包含了分片编号、ETag、大小和上传时间等信息。
+  /// 这些信息可用于完成分片上传操作。
+  final List<PartInfo> parts;
 
   /// 返回实例的字符串表示
   ///
@@ -296,10 +298,10 @@ class ListPartsResult {
   /// ```
   Map<String, int?> getNextPageParams() {
     if (!isTruncated) {
-      return {};
+      return <String, int?>{};
     }
 
-    return {'partNumberMarker': nextPartNumberMarker};
+    return <String, int?>{'partNumberMarker': nextPartNumberMarker};
   }
 
   /// 获取分片上传的完成参数
@@ -319,7 +321,7 @@ class ListPartsResult {
   /// ```
   List<Map<String, dynamic>> getCompleteParams() {
     return parts
-        .map((part) => {'partNumber': part.partNumber, 'eTag': part.eTag})
+        .map((PartInfo part) => <String, Object>{'partNumber': part.partNumber, 'eTag': part.eTag})
         .toList();
   }
 
@@ -337,6 +339,6 @@ class ListPartsResult {
   /// print('已上传: ${totalBytes / 1024 / 1024} MB');
   /// ```
   int getTotalSize() {
-    return parts.fold<int>(0, (sum, part) => sum + part.size);
+    return parts.fold<int>(0, (int sum, PartInfo part) => sum + part.size);
   }
 }

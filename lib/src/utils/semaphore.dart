@@ -34,15 +34,6 @@ import 'dart:async';
 /// await Future.wait(tasks);
 /// ```
 class Semaphore {
-  /// 允许的最大并发数量。
-  final int _maxCount;
-
-  /// 当前已获取但尚未释放的许可数量。
-  int _currentCount = 0;
-
-  /// 等待获取许可的操作队列。
-  /// 每个 Completer 代表一个等待的操作。
-  final List<Completer<void>> _waiters = [];
 
   /// 创建一个新的信号量实例。
   ///
@@ -53,6 +44,15 @@ class Semaphore {
       throw ArgumentError('maxCount 必须大于 0');
     }
   }
+  /// 允许的最大并发数量。
+  final int _maxCount;
+
+  /// 当前已获取但尚未释放的许可数量。
+  int _currentCount = 0;
+
+  /// 等待获取许可的操作队列。
+  /// 每个 Completer 代表一个等待的操作。
+  final List<Completer<void>> _waiters = <Completer<void>>[];
 
   /// 获取一个信号量许可。
   ///
@@ -67,10 +67,10 @@ class Semaphore {
   Future<void> acquire() async {
     if (_currentCount < _maxCount) {
       _currentCount++;
-      return Future.value();
+      return Future<void>.value();
     }
 
-    final completer = Completer<void>();
+    final Completer<void> completer = Completer<void>();
     _waiters.add(completer);
     return completer.future;
   }
@@ -86,7 +86,7 @@ class Semaphore {
   /// 以避免死锁或资源泄漏。
   void release() {
     if (_waiters.isNotEmpty) {
-      final completer = _waiters.removeAt(0);
+      final Completer<void> completer = _waiters.removeAt(0);
       completer.complete();
     } else {
       _currentCount--;

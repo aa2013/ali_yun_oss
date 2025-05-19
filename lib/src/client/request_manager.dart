@@ -13,16 +13,16 @@ import 'package:dio/dio.dart';
 /// - 支持取消所有正在进行的请求
 /// - 自动管理令牌资源,避免内存泄漏
 class OSSRequestManager {
-  /// 存储请求键与取消令牌的映射关系
-  final Map<String, CancelToken> _tokens = <String, CancelToken>{};
-
-  /// 请求ID计数器,用于生成唯一的请求ID
-  int _requestId = 0;
 
   /// 默认构造函数
   ///
   /// 创建一个新的 OSS 请求管理器实例
   OSSRequestManager();
+  /// 存储请求键与取消令牌的映射关系
+  final Map<String, CancelToken> _tokens = <String, CancelToken>{};
+
+  /// 请求ID计数器,用于生成唯一的请求ID
+  int _requestId = 0;
 
   /// 生成唯一请求ID
   ///

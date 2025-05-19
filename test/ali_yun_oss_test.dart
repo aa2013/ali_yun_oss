@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:dart_aliyun_oss/dart_aliyun_oss.dart';
 import 'package:dio/dio.dart';
 import 'package:test/test.dart';
@@ -10,7 +12,7 @@ void main() {
   group('OSSConfig 测试', () {
     test('创建 OSSConfig 实例并验证基本属性', () {
       // 创建不带 securityToken 的配置
-      final config = OSSConfig(
+      const OSSConfig config = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -33,7 +35,7 @@ void main() {
       expect(config.interceptors, isNull);
 
       // 创建带 securityToken 的配置
-      final configWithToken = OSSConfig(
+      const OSSConfig configWithToken = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -47,7 +49,7 @@ void main() {
     });
 
     test('OSSConfig.forTest 工厂方法', () {
-      final config = OSSConfig.forTest();
+      final OSSConfig config = OSSConfig.forTest();
 
       // 验证默认测试值
       expect(config.endpoint, 'oss-cn-hangzhou.aliyuncs.com');
@@ -60,7 +62,7 @@ void main() {
       expect(config.maxConcurrency, 3); // 测试环境默认为3
 
       // 验证自定义测试值（不带 securityToken）
-      final customConfig = OSSConfig.forTest(
+      final OSSConfig customConfig = OSSConfig.forTest(
         accessKeyId: 'custom-key',
         region: 'cn-beijing',
       );
@@ -74,7 +76,7 @@ void main() {
       expect(customConfig.securityToken, isNull);
 
       // 验证带 securityToken 的自定义测试值
-      final tokenConfig = OSSConfig.forTest(securityToken: 'test-sts-token');
+      final OSSConfig tokenConfig = OSSConfig.forTest(securityToken: 'test-sts-token');
 
       expect(tokenConfig.securityToken, 'test-sts-token');
       expect(tokenConfig.accessKeyId, 'test_key_id'); // 其他值保持默认
@@ -82,7 +84,7 @@ void main() {
 
     test('OSSConfig.fromJson 和 toJson 方法', () {
       // 测试不带 securityToken 的配置
-      final originalConfig = OSSConfig(
+      const OSSConfig originalConfig = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -93,7 +95,7 @@ void main() {
       );
 
       // 转换为 JSON
-      final json = originalConfig.toJson();
+      final Map<String, dynamic> json = originalConfig.toJson();
 
       // 验证 JSON 内容
       expect(json['endpoint'], 'oss-cn-hangzhou.aliyuncs.com');
@@ -109,7 +111,7 @@ void main() {
       ); // 不应包含 securityToken 键
 
       // 从 JSON 创建新实例
-      final configFromJson = OSSConfig.fromJson(json);
+      final OSSConfig configFromJson = OSSConfig.fromJson(json);
 
       // 验证新实例
       expect(configFromJson.endpoint, originalConfig.endpoint);
@@ -125,7 +127,7 @@ void main() {
       expect(configFromJson.securityToken, isNull);
 
       // 测试带 securityToken 的配置
-      final configWithToken = OSSConfig(
+      const OSSConfig configWithToken = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -135,13 +137,13 @@ void main() {
       );
 
       // 转换为 JSON
-      final jsonWithToken = configWithToken.toJson();
+      final Map<String, dynamic> jsonWithToken = configWithToken.toJson();
 
       // 验证 JSON 内容
       expect(jsonWithToken['securityToken'], 'test-security-token');
 
       // 从 JSON 创建新实例
-      final configFromJsonWithToken = OSSConfig.fromJson(jsonWithToken);
+      final OSSConfig configFromJsonWithToken = OSSConfig.fromJson(jsonWithToken);
 
       // 验证新实例
       expect(configFromJsonWithToken.securityToken, 'test-security-token');
@@ -149,7 +151,7 @@ void main() {
 
     test('OSSConfig.copyWith 方法', () {
       // 测试不带 securityToken 的配置
-      final originalConfig = OSSConfig(
+      const OSSConfig originalConfig = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -158,7 +160,7 @@ void main() {
       );
 
       // 使用 copyWith 创建新实例,修改部分属性
-      final newConfig = originalConfig.copyWith(
+      final OSSConfig newConfig = originalConfig.copyWith(
         endpoint: 'oss-cn-beijing.aliyuncs.com',
         region: 'cn-beijing',
         maxConcurrency: 10,
@@ -180,7 +182,7 @@ void main() {
       expect(newConfig.securityToken, isNull);
 
       // 测试添加 securityToken
-      final configWithToken = originalConfig.copyWith(
+      final OSSConfig configWithToken = originalConfig.copyWith(
         securityToken: 'new-security-token',
       );
 
@@ -188,7 +190,7 @@ void main() {
       expect(configWithToken.securityToken, 'new-security-token');
 
       // 测试修改 securityToken
-      final configWithTokenOriginal = OSSConfig(
+      const OSSConfig configWithTokenOriginal = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -197,7 +199,7 @@ void main() {
         securityToken: 'original-token',
       );
 
-      final configWithTokenUpdated = configWithTokenOriginal.copyWith(
+      final OSSConfig configWithTokenUpdated = configWithTokenOriginal.copyWith(
         securityToken: 'updated-token',
       );
 
@@ -209,13 +211,13 @@ void main() {
       // 这是 copyWith 模式的标准行为
 
       // 验证 securityToken 保持不变
-      final configWithTokenUnchanged = configWithTokenOriginal.copyWith();
+      final OSSConfig configWithTokenUnchanged = configWithTokenOriginal.copyWith();
       expect(configWithTokenUnchanged.securityToken, 'original-token');
     });
 
     test('OSSConfig 相等性和哈希码', () {
       // 测试不带 securityToken 的配置
-      final config1 = OSSConfig(
+      const OSSConfig config1 = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -223,7 +225,7 @@ void main() {
         bucketName: 'test-bucket',
       );
 
-      final config2 = OSSConfig(
+      const OSSConfig config2 = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -231,7 +233,7 @@ void main() {
         bucketName: 'test-bucket',
       );
 
-      final config3 = OSSConfig(
+      const OSSConfig config3 = OSSConfig(
         endpoint: 'oss-cn-beijing.aliyuncs.com', // 不同的端点
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -248,7 +250,7 @@ void main() {
       expect(config1.hashCode == config3.hashCode, isFalse);
 
       // 测试带 securityToken 的配置
-      final configWithToken1 = OSSConfig(
+      const OSSConfig configWithToken1 = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -257,7 +259,7 @@ void main() {
         securityToken: 'test-token',
       );
 
-      final configWithToken2 = OSSConfig(
+      const OSSConfig configWithToken2 = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -266,7 +268,7 @@ void main() {
         securityToken: 'test-token',
       );
 
-      final configWithDifferentToken = OSSConfig(
+      const OSSConfig configWithDifferentToken = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -293,7 +295,7 @@ void main() {
 
     test('OSSConfig toString 方法应该屏蔽敏感信息', () {
       // 测试不带 securityToken 的配置
-      final config = OSSConfig(
+      const OSSConfig config = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -301,7 +303,7 @@ void main() {
         bucketName: 'test-bucket',
       );
 
-      final stringRepresentation = config.toString();
+      final String stringRepresentation = config.toString();
 
       // 验证敏感信息被屏蔽
       expect(stringRepresentation.contains('test-key-id'), isFalse);
@@ -316,7 +318,7 @@ void main() {
       );
 
       // 测试带 securityToken 的配置
-      final configWithToken = OSSConfig(
+      const OSSConfig configWithToken = OSSConfig(
         endpoint: 'oss-cn-hangzhou.aliyuncs.com',
         region: 'cn-hangzhou',
         accessKeyId: 'test-key-id',
@@ -325,7 +327,7 @@ void main() {
         securityToken: 'test-security-token',
       );
 
-      final stringWithToken = configWithToken.toString();
+      final String stringWithToken = configWithToken.toString();
 
       // 验证 securityToken 被屏蔽
       expect(stringWithToken.contains('test-security-token'), isFalse);
@@ -340,14 +342,14 @@ void main() {
       // 这个测试只验证初始化不会抛出异常
       expect(() {
         OSSClient.init(OSSConfig.forTest());
-      }, returnsNormally);
+      }, returnsNormally,);
     });
 
     test('OSSClient 初始化参数验证', () {
       // 测试缺少必要参数时应抛出异常
       expect(() {
         OSSClient.init(
-          OSSConfig(
+          const OSSConfig(
             endpoint: '', // 空端点
             region: 'cn-hangzhou',
             accessKeyId: 'test-key-id',
@@ -355,11 +357,11 @@ void main() {
             bucketName: 'test-bucket',
           ),
         );
-      }, throwsException); // 使用 throwsException 而不是 throwsArgumentError
+      }, throwsException,); // 使用 throwsException 而不是 throwsArgumentError
 
       expect(() {
         OSSClient.init(
-          OSSConfig(
+          const OSSConfig(
             endpoint: 'oss-cn-hangzhou.aliyuncs.com',
             region: 'cn-hangzhou',
             accessKeyId: '', // 空 AccessKey ID
@@ -367,7 +369,7 @@ void main() {
             bucketName: 'test-bucket',
           ),
         );
-      }, throwsException); // 使用 throwsException 而不是 throwsArgumentError
+      }, throwsException,); // 使用 throwsException 而不是 throwsArgumentError
     });
 
     test('OSSClient 是单例模式', () {
@@ -391,27 +393,26 @@ void main() {
 
   group('OSSRequestParams 测试', () {
     test('创建 OSSRequestParams 实例', () {
-      final params = OSSRequestParams(
+      final OSSRequestParams params = OSSRequestParams(
         bucketName: 'custom-bucket',
         isV1Signature: true,
-        dateTime: DateTime(2023, 1, 1),
+        dateTime: DateTime(2023),
       );
 
       expect(params.bucketName, 'custom-bucket');
       expect(params.isV1Signature, isTrue);
-      expect(params.dateTime, DateTime(2023, 1, 1));
+      expect(params.dateTime, DateTime(2023));
       expect(params.options, isNull);
       expect(params.cancelToken, isNull);
       expect(params.onReceiveProgress, isNull);
     });
 
     test('OSSRequestParams.copyWith 方法', () {
-      final originalParams = OSSRequestParams(
+      const OSSRequestParams originalParams = OSSRequestParams(
         bucketName: 'original-bucket',
-        isV1Signature: false,
       );
 
-      final newParams = originalParams.copyWith(
+      final OSSRequestParams newParams = originalParams.copyWith(
         bucketName: 'new-bucket',
         isV1Signature: true,
         cancelToken: CancelToken(),
@@ -432,7 +433,7 @@ void main() {
   group('OSSUtils 测试', () {
     test('计算分片配置', () {
       // 测试小文件的分片配置
-      final smallFileConfig = OSSUtils.calculatePartConfig(
+      final ({int numberOfParts, int partSize}) smallFileConfig = OSSUtils.calculatePartConfig(
         1024 * 1024,
         null,
       ); // 1MB
@@ -440,7 +441,7 @@ void main() {
       expect(smallFileConfig.numberOfParts > 0, isTrue);
 
       // 测试大文件的分片配置
-      final largeFileConfig = OSSUtils.calculatePartConfig(
+      final ({int numberOfParts, int partSize}) largeFileConfig = OSSUtils.calculatePartConfig(
         100 * 1024 * 1024,
         null,
       ); // 100MB
@@ -448,7 +449,7 @@ void main() {
       expect(largeFileConfig.numberOfParts > 0, isTrue);
 
       // 测试指定分片数量
-      final customPartsConfig = OSSUtils.calculatePartConfig(
+      final ({int numberOfParts, int partSize}) customPartsConfig = OSSUtils.calculatePartConfig(
         10 * 1024 * 1024,
         5,
       ); // 10MB, 5分片

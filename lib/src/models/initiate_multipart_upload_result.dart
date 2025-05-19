@@ -6,23 +6,6 @@
 /// 这些信息在后续的分片上传操作中必不可少,特别是 uploadId,
 /// 它是标识分片上传任务的唯一标识符,在上传分片、完成或取消分片上传时都需要提供。
 class InitiateMultipartUploadResult {
-  /// 存储空间名称
-  ///
-  /// 分片上传所在的阿里云OSS存储空间（Bucket）名称。
-  /// 这个字段在后续的分片上传操作中需要使用。
-  final String bucket;
-
-  /// 文件键（路径）
-  ///
-  /// 要上传的文件在OSS中的完整路径和名称（Object Key）。
-  /// 这个字段在后续的分片上传操作中需要使用。
-  final String key;
-
-  /// 分片上传ID
-  ///
-  /// 由阿里云OSS生成的全局唯一标识符,用于标识这个分片上传任务。
-  /// 这个 ID 在后续的上传分片、完成或取消分片上传操作中必须提供。
-  final String uploadId;
 
   /// 构造函数
   ///
@@ -62,7 +45,7 @@ class InitiateMultipartUploadResult {
     ).firstMatch(xmlString);
 
     if (bucketMatch == null || keyMatch == null || uploadIdMatch == null) {
-      throw FormatException(
+      throw const FormatException(
         'Invalid XML format for InitiateMultipartUploadResult',
       );
     }
@@ -73,6 +56,23 @@ class InitiateMultipartUploadResult {
       uploadId: uploadIdMatch.group(1)!,
     );
   }
+  /// 存储空间名称
+  ///
+  /// 分片上传所在的阿里云OSS存储空间（Bucket）名称。
+  /// 这个字段在后续的分片上传操作中需要使用。
+  final String bucket;
+
+  /// 文件键（路径）
+  ///
+  /// 要上传的文件在OSS中的完整路径和名称（Object Key）。
+  /// 这个字段在后续的分片上传操作中需要使用。
+  final String key;
+
+  /// 分片上传ID
+  ///
+  /// 由阿里云OSS生成的全局唯一标识符,用于标识这个分片上传任务。
+  /// 这个 ID 在后续的上传分片、完成或取消分片上传操作中必须提供。
+  final String uploadId;
 
   /// 返回实例的字符串表示
   ///

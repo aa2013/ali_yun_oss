@@ -1,9 +1,11 @@
+import 'dart:developer';
 import 'dart:io';
+
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 mixin PutObjectImpl on IOSSService {
   /// 阿里云 OSS 对象上传实现
@@ -62,27 +64,27 @@ mixin PutObjectImpl on IOSSService {
   }) async {
     // 添加参数验证
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能为空',
       );
     }
 
     if (fileKey.startsWith('/')) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能以 "/" 开头',
       );
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
 
     return client.requestHandler.executeRequest(fileKey, params?.cancelToken, (
       CancelToken cancelToken,
     ) async {
       try {
         // 检查文件是否存在
-        if (!await file.exists()) {
+        if (!file.existsSync()) {
           throw OSSException(
             type: OSSErrorType.invalidArgument,
             message: '文件不存在: ${file.path}',
@@ -90,14 +92,15 @@ mixin PutObjectImpl on IOSSService {
         }
 
         // 检查文件大小
-        final fileLength = await file.length();
+        final int fileLength = file.lengthSync();
         if (fileLength > 100 * 1024 * 1024) {
           // 100MB
-          print('警告: 文件大小超过100MB,建议使用分片上传');
+          log('警告: 文件大小超过100MB,建议使用分片上传', level: 800);
         }
 
         // 更新请求参数
-        final updatedParams = params ?? OSSRequestParams();
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
 
         final Uri uri = client.buildOssUri(
           bucket: updatedParams.bucketName,
@@ -109,16 +112,16 @@ mixin PutObjectImpl on IOSSService {
         final dynamic data = stream;
         final int contentLength = fileLength;
 
-        final Map<String, dynamic> ossHeaders = {
+        final Map<String, dynamic> ossHeaders = <String, dynamic>{
           if (forbidOverride != null)
             'x-oss-forbid-overwrite': forbidOverride.toString(),
           if (acl != null) 'x-oss-object-acl': acl,
           if (storageClass != null) 'x-oss-storage-class': storageClass,
         };
 
-        final Map<String, dynamic> baseHeaders = {
+        final Map<String, dynamic> baseHeaders = <String, dynamic>{
           ...ossHeaders,
-          ...(updatedParams.options?.headers ?? {}),
+          ...(updatedParams.options?.headers ?? <String, dynamic>{}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(

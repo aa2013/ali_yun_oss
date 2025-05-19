@@ -6,36 +6,6 @@
 /// 该类主要用于解析阿里云OSS返回的XML格式响应,并提供了便捷的访问方式。
 /// 它包含了从 XML 字符串创建实例的工厂方法,以及用于调试的字符串表示。
 class CompleteMultipartUploadResult {
-  /// 编码类型
-  ///
-  /// 指定响应中返回的内容的编码方式。
-  /// 当请求中指定了 encodingType 参数时,这里会返回相应的编码类型（如 'url'）。
-  /// 如果请求中未指定,则为 null。
-  final String? encodingType;
-
-  /// 文件的访问 URL
-  ///
-  /// 完成上传后文件的完整访问 URL。
-  /// 这个 URL 可以用于直接访问文件（如果文件有公共访问权限）。
-  /// 格式通常为：https://{bucket}.{endpoint}/{key}
-  final String location;
-
-  /// 存储空间名称
-  ///
-  /// 文件所在的阿里云OSS存储空间（Bucket）名称。
-  final String bucket;
-
-  /// 文件键值（路径）
-  ///
-  /// 文件在OSS中的完整路径和名称（Object Key）。
-  final String key;
-
-  /// 文件的 ETag 值
-  ///
-  /// 完成分片上传后生成的文件的 ETag（实体标签）。
-  /// 对于分片上传的文件,ETag 不是文件内容的 MD5 值,
-  /// 而是一个包含连字符的唯一标识,如 "3858F62AEEC9284B8A9B2C7D4B2CDAAA-1"。
-  final String eTag;
 
   /// 构造函数
   ///
@@ -96,6 +66,36 @@ class CompleteMultipartUploadResult {
       eTag: findElementTextRequired('ETag', xmlString),
     );
   }
+  /// 编码类型
+  ///
+  /// 指定响应中返回的内容的编码方式。
+  /// 当请求中指定了 encodingType 参数时,这里会返回相应的编码类型（如 'url'）。
+  /// 如果请求中未指定,则为 null。
+  final String? encodingType;
+
+  /// 文件的访问 URL
+  ///
+  /// 完成上传后文件的完整访问 URL。
+  /// 这个 URL 可以用于直接访问文件（如果文件有公共访问权限）。
+  /// 格式通常为：https://{bucket}.{endpoint}/{key}
+  final String location;
+
+  /// 存储空间名称
+  ///
+  /// 文件所在的阿里云OSS存储空间（Bucket）名称。
+  final String bucket;
+
+  /// 文件键值（路径）
+  ///
+  /// 文件在OSS中的完整路径和名称（Object Key）。
+  final String key;
+
+  /// 文件的 ETag 值
+  ///
+  /// 完成分片上传后生成的文件的 ETag（实体标签）。
+  /// 对于分片上传的文件,ETag 不是文件内容的 MD5 值,
+  /// 而是一个包含连字符的唯一标识,如 "3858F62AEEC9284B8A9B2C7D4B2CDAAA-1"。
+  final String eTag;
 
   /// 返回实例的字符串表示
   ///

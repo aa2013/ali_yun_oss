@@ -41,28 +41,28 @@ mixin ListMultipartUploadsImpl on IOSSService {
     String? uploadIdMarker,
     OSSRequestParams? params,
   }) async {
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     final String bucketName = params?.bucketName ?? client.config.bucketName;
-    final String requestKey = [
+    final String requestKey = <String?>[
       'listMultipartUploads',
       bucketName,
       prefix,
       keyMarker,
       uploadIdMarker,
-    ].where((e) => e != null && e.isNotEmpty).join('-');
+    ].where((String? e) => e != null && e.isNotEmpty).join('-');
     return client.requestHandler.executeRequest(
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
         if (maxUploads != null && (maxUploads < 1 || maxUploads > 1000)) {
-          throw OSSException(
+          throw const OSSException(
             type: OSSErrorType.invalidArgument,
             message: 'maxUploads 必须在 1-1000 之间',
           );
         }
 
         // 定义操作特定查询参数
-        final Map<String, dynamic> operationQuery = {
+        final Map<String, dynamic> operationQuery = <String, dynamic>{
           'uploads': '', // 必须参数
           if (delimiter?.isNotEmpty ?? false) 'delimiter': delimiter!,
           if (encodingType?.isNotEmpty ?? false) 'encoding-type': encodingType!,
@@ -74,8 +74,9 @@ mixin ListMultipartUploadsImpl on IOSSService {
         };
 
         // 更新请求参数
-        final updatedParams = params ?? OSSRequestParams();
-        final paramsWithQuery = updatedParams.copyWith(
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
+        final OSSRequestParams paramsWithQuery = updatedParams.copyWith(
           queryParameters: operationQuery,
         );
 
@@ -87,15 +88,14 @@ mixin ListMultipartUploadsImpl on IOSSService {
         );
 
         // 准备基础 Headers
-        final Map<String, dynamic> baseHeaders = {
-          ...(paramsWithQuery.options?.headers ?? {}),
+        final Map<String, dynamic> baseHeaders = <String, dynamic>{
+          ...(paramsWithQuery.options?.headers ?? <String, dynamic>{}),
         };
 
         // 创建签名 Headers
         final Map<String, dynamic> headers = client.createSignedHeaders(
           method: 'GET',
           fileKey: '', // 操作针对 Bucket,fileKey 为空
-          contentLength: null, // GET 请求无 Content-Length
           baseHeaders: baseHeaders,
           params: paramsWithQuery,
         );
@@ -112,7 +112,6 @@ mixin ListMultipartUploadsImpl on IOSSService {
           uri: uri,
           method: 'GET',
           options: requestOptions,
-          data: null,
           cancelToken: cancelToken,
           onReceiveProgress: params?.onReceiveProgress,
           onSendProgress: params?.onSendProgress,

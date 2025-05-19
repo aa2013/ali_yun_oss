@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'upload_info.dart';
 
 /// 阿里云OSS列出分片上传请求的结果模型
@@ -45,6 +47,189 @@ import 'upload_info.dart';
 /// }
 /// ```
 class ListMultipartUploadsResult {
+  /// 构造函数
+  ///
+  /// 创建一个新的 [ListMultipartUploadsResult] 实例。
+  ///
+  /// 参数：
+  /// - [bucket] 必需的存储空间名称
+  /// - [commonPrefixes] 公共前缀列表,默认为空列表
+  /// - [delimiter] 可选的目录分隔符
+  /// - [encodingType] 可选的编码类型
+  /// - [isTruncated] 必需的列表截断标志
+  /// - [keyMarker] 可选的起始对象位置
+  /// - [maxUploads] 必需的最大返回数量
+  /// - [nextKeyMarker] 可选的下一个对象标记
+  /// - [nextUploadIdMarker] 可选的下一个上传ID标记
+  /// - [prefix] 可选的前缀筛选条件
+  /// - [uploadIdMarker] 可选的起始上传ID位置
+  /// - [uploads] 必需的分片上传事件列表
+  const ListMultipartUploadsResult({
+    required this.bucket,
+    this.commonPrefixes = const <String>[],
+    this.delimiter,
+    this.encodingType,
+    required this.isTruncated,
+    this.keyMarker,
+    required this.maxUploads,
+    this.nextKeyMarker,
+    this.nextUploadIdMarker,
+    this.prefix,
+    this.uploadIdMarker,
+    required this.uploads,
+  });
+
+  /// 从XML字符串解析分片上传列表结果
+  ///
+  /// 将阿里云OSS返回的XML格式响应解析为 [ListMultipartUploadsResult] 对象。
+  /// 使用正则表达式提取各个元素的值,无需依赖外部XML解析库。
+  ///
+  /// 解析过程：
+  /// 1. 提取所有的基本元数据字段（Bucket、KeyMarker、MaxUploads等）
+  /// 2. 验证必需字段是否存在,并进行类型转换（如将字符串转为整数和布尔值）
+  /// 3. 提取所有的 `<Upload>` 元素并解析为 [UploadInfo] 对象
+  /// 4. 提取所有的 `<CommonPrefixes>` 元素中的 `<Prefix>` 值
+  /// 5. 构造并返回完整的 [ListMultipartUploadsResult] 对象
+  ///
+  /// 默认处理机制：
+  /// - 如果解析单个 `<Upload>` 元素失败,会跳过该元素并继续处理其他元素
+  /// - 对于空的标签或自闭合标签,会正确处理并返回 null
+  /// - 对于可选字段,如果在XML中不存在,则在结果对象中为 null
+  ///
+  /// 参数：
+  /// - [xmlString] 要解析的XML字符串,通常是 ListMultipartUploads 操作的响应体
+  ///
+  /// 返回一个新的 [ListMultipartUploadsResult] 实例
+  ///
+  /// 异常：
+  /// - 如果 XML 格式无效或缺少必需的元素（Bucket、MaxUploads、IsTruncated）,则抛出 [FormatException]
+  /// - 如果 maxUploads 字段不是有效的整数,则抛出 [FormatException]
+  ///
+  /// 示例 XML 格式：
+  /// ```xml
+  /// <ListMultipartUploadsResult>
+  ///   <Bucket>example-bucket</Bucket>
+  ///   <KeyMarker></KeyMarker>
+  ///   <UploadIdMarker></UploadIdMarker>
+  ///   <NextKeyMarker>example.jpg</NextKeyMarker>
+  ///   <NextUploadIdMarker>0004B9895DBBB6EC98E36</NextUploadIdMarker>
+  ///   <Delimiter>/</Delimiter>
+  ///   <Prefix>uploads/</Prefix>
+  ///   <MaxUploads>1000</MaxUploads>
+  ///   <IsTruncated>false</IsTruncated>
+  ///   <Upload>
+  ///     <Key>uploads/example.jpg</Key>
+  ///     <UploadId>0004B9895DBBB6EC98E36</UploadId>
+  ///     <Initiated>2023-01-15T12:30:45.000Z</Initiated>
+  ///   </Upload>
+  ///   <CommonPrefixes>
+  ///     <Prefix>uploads/photos/</Prefix>
+  ///   </CommonPrefixes>
+  /// </ListMultipartUploadsResult>
+  /// ```
+  factory ListMultipartUploadsResult.fromXmlString(String xmlString) {
+    // Helper function to extract single value
+    String? extractValue(String tagName) {
+      // Use non-greedy match and handle self-closing tags or empty content
+      final RegExpMatch? match = RegExp(
+        '<$tagName>(.*?)</$tagName>|<$tagName/>',
+      ).firstMatch(xmlString);
+      // If group 1 exists, return it, otherwise it's an empty/self-closing tag
+      return match?.group(1);
+    }
+
+    // Helper function to extract multiple values under a parent tag
+    List<String> extractMultipleValues(String parentTag, String childTag) {
+      final List<String> values = <String>[];
+      // Find the parent block first (non-greedy match)
+      final RegExpMatch? parentMatch = RegExp(
+        '<$parentTag>(.*?)</$parentTag>',
+        dotAll: true,
+      ).firstMatch(xmlString);
+      if (parentMatch != null) {
+        final String parentContent = parentMatch.group(1)!;
+        // Find all child tags within the parent block
+        final Iterable<RegExpMatch> childMatches = RegExp(
+          '<$childTag>(.*?)</$childTag>',
+        ).allMatches(parentContent);
+        for (final RegExpMatch match in childMatches) {
+          if (match.group(1) != null) {
+            values.add(match.group(1)!);
+          }
+        }
+      }
+      return values;
+    }
+
+    // --- Extraction order remains the same ---
+    final String? bucket = extractValue('Bucket');
+    final String? keyMarker = extractValue('KeyMarker');
+    final String? uploadIdMarker = extractValue('UploadIdMarker');
+    final String? nextKeyMarker = extractValue('NextKeyMarker');
+    final String? nextUploadIdMarker = extractValue('NextUploadIdMarker');
+    final String? delimiter = extractValue('Delimiter');
+    final String? prefix = extractValue('Prefix');
+    final String? maxUploadsStr = extractValue('MaxUploads');
+    final String? isTruncatedStr = extractValue('IsTruncated');
+    final String? encodingType = extractValue('EncodingType');
+
+    if (bucket == null || maxUploadsStr == null || isTruncatedStr == null) {
+      throw const FormatException(
+        'Invalid XML format: Missing required fields (Bucket, MaxUploads, IsTruncated)',
+      );
+    }
+
+    final int? maxUploads = int.tryParse(maxUploadsStr);
+    if (maxUploads == null) {
+      throw FormatException('Invalid MaxUploads format: $maxUploadsStr');
+    }
+
+    // Handle boolean parsing carefully
+    final bool isTruncated = isTruncatedStr.toLowerCase() == 'true';
+
+    // Extract Upload blocks
+    final List<UploadInfo> uploads = <UploadInfo>[];
+    final Iterable<RegExpMatch> uploadMatches = RegExp(
+      r'<Upload>(.*?)<\/Upload>',
+      dotAll: true,
+    ).allMatches(xmlString);
+    for (final RegExpMatch match in uploadMatches) {
+      final String uploadFragment = match.group(1)!;
+      try {
+        uploads.add(UploadInfo.fromXmlFragment(uploadFragment));
+      } catch (e, stackTrace) {
+        log(
+          'Error parsing Upload fragment: $e',
+          name: 'ListMultipartUploadsResult',
+          stackTrace: stackTrace,
+          level: 1000,
+        );
+      }
+    }
+
+    // Extract CommonPrefixes blocks
+    final List<String> commonPrefixes = extractMultipleValues(
+      'CommonPrefixes',
+      'Prefix',
+    );
+
+    // --- Return statement arguments reordered to match constructor ---
+    return ListMultipartUploadsResult(
+      bucket: bucket,
+      commonPrefixes: commonPrefixes, // Reordered
+      delimiter: delimiter,
+      encodingType: encodingType, // Reordered
+      isTruncated: isTruncated, // Reordered
+      keyMarker: keyMarker,
+      maxUploads: maxUploads, // Reordered
+      nextKeyMarker: nextKeyMarker,
+      nextUploadIdMarker: nextUploadIdMarker,
+      prefix: prefix, // Reordered
+      uploadIdMarker: uploadIdMarker, // Reordered
+      uploads: uploads, // Reordered
+    );
+  }
+
   /// 存储空间名称
   ///
   /// 返回结果所属的阿里云OSS存储空间（Bucket）名称。
@@ -119,187 +304,6 @@ class ListMultipartUploadsResult {
   /// 包含所有符合查询条件的分片上传任务的详细信息。
   /// 每个元素都是一个 [UploadInfo] 对象,包含了分片上传的目标文件、上传ID和初始化时间等信息。
   final List<UploadInfo> uploads;
-
-  /// 构造函数
-  ///
-  /// 创建一个新的 [ListMultipartUploadsResult] 实例。
-  ///
-  /// 参数：
-  /// - [bucket] 必需的存储空间名称
-  /// - [commonPrefixes] 公共前缀列表,默认为空列表
-  /// - [delimiter] 可选的目录分隔符
-  /// - [encodingType] 可选的编码类型
-  /// - [isTruncated] 必需的列表截断标志
-  /// - [keyMarker] 可选的起始对象位置
-  /// - [maxUploads] 必需的最大返回数量
-  /// - [nextKeyMarker] 可选的下一个对象标记
-  /// - [nextUploadIdMarker] 可选的下一个上传ID标记
-  /// - [prefix] 可选的前缀筛选条件
-  /// - [uploadIdMarker] 可选的起始上传ID位置
-  /// - [uploads] 必需的分片上传事件列表
-  const ListMultipartUploadsResult({
-    required this.bucket,
-    this.commonPrefixes = const [],
-    this.delimiter,
-    this.encodingType,
-    required this.isTruncated,
-    this.keyMarker,
-    required this.maxUploads,
-    this.nextKeyMarker,
-    this.nextUploadIdMarker,
-    this.prefix,
-    this.uploadIdMarker,
-    required this.uploads,
-  });
-
-  /// 从XML字符串解析分片上传列表结果
-  ///
-  /// 将阿里云OSS返回的XML格式响应解析为 [ListMultipartUploadsResult] 对象。
-  /// 使用正则表达式提取各个元素的值,无需依赖外部XML解析库。
-  ///
-  /// 解析过程：
-  /// 1. 提取所有的基本元数据字段（Bucket、KeyMarker、MaxUploads等）
-  /// 2. 验证必需字段是否存在,并进行类型转换（如将字符串转为整数和布尔值）
-  /// 3. 提取所有的 `<Upload>` 元素并解析为 [UploadInfo] 对象
-  /// 4. 提取所有的 `<CommonPrefixes>` 元素中的 `<Prefix>` 值
-  /// 5. 构造并返回完整的 [ListMultipartUploadsResult] 对象
-  ///
-  /// 默认处理机制：
-  /// - 如果解析单个 `<Upload>` 元素失败,会跳过该元素并继续处理其他元素
-  /// - 对于空的标签或自闭合标签,会正确处理并返回 null
-  /// - 对于可选字段,如果在XML中不存在,则在结果对象中为 null
-  ///
-  /// 参数：
-  /// - [xmlString] 要解析的XML字符串,通常是 ListMultipartUploads 操作的响应体
-  ///
-  /// 返回一个新的 [ListMultipartUploadsResult] 实例
-  ///
-  /// 异常：
-  /// - 如果 XML 格式无效或缺少必需的元素（Bucket、MaxUploads、IsTruncated）,则抛出 [FormatException]
-  /// - 如果 maxUploads 字段不是有效的整数,则抛出 [FormatException]
-  ///
-  /// 示例 XML 格式：
-  /// ```xml
-  /// <ListMultipartUploadsResult>
-  ///   <Bucket>example-bucket</Bucket>
-  ///   <KeyMarker></KeyMarker>
-  ///   <UploadIdMarker></UploadIdMarker>
-  ///   <NextKeyMarker>example.jpg</NextKeyMarker>
-  ///   <NextUploadIdMarker>0004B9895DBBB6EC98E36</NextUploadIdMarker>
-  ///   <Delimiter>/</Delimiter>
-  ///   <Prefix>uploads/</Prefix>
-  ///   <MaxUploads>1000</MaxUploads>
-  ///   <IsTruncated>false</IsTruncated>
-  ///   <Upload>
-  ///     <Key>uploads/example.jpg</Key>
-  ///     <UploadId>0004B9895DBBB6EC98E36</UploadId>
-  ///     <Initiated>2023-01-15T12:30:45.000Z</Initiated>
-  ///   </Upload>
-  ///   <CommonPrefixes>
-  ///     <Prefix>uploads/photos/</Prefix>
-  ///   </CommonPrefixes>
-  /// </ListMultipartUploadsResult>
-  /// ```
-  factory ListMultipartUploadsResult.fromXmlString(String xmlString) {
-    // Helper function to extract single value
-    String? extractValue(String tagName) {
-      // Use non-greedy match and handle self-closing tags or empty content
-      final RegExpMatch? match = RegExp(
-        '<$tagName>(.*?)</$tagName>|<$tagName/>',
-      ).firstMatch(xmlString);
-      // If group 1 exists, return it, otherwise it's an empty/self-closing tag
-      return match?.group(1);
-    }
-
-    // Helper function to extract multiple values under a parent tag
-    List<String> extractMultipleValues(String parentTag, String childTag) {
-      final List<String> values = [];
-      // Find the parent block first (non-greedy match)
-      final RegExpMatch? parentMatch = RegExp(
-        '<$parentTag>(.*?)</$parentTag>',
-        dotAll: true,
-      ).firstMatch(xmlString);
-      if (parentMatch != null) {
-        final String parentContent = parentMatch.group(1)!;
-        // Find all child tags within the parent block
-        final Iterable<RegExpMatch> childMatches = RegExp(
-          '<$childTag>(.*?)</$childTag>',
-        ).allMatches(parentContent);
-        for (final RegExpMatch match in childMatches) {
-          if (match.group(1) != null) {
-            values.add(match.group(1)!);
-          }
-        }
-      }
-      return values;
-    }
-
-    // --- Extraction order remains the same ---
-    final String? bucket = extractValue('Bucket');
-    final String? keyMarker = extractValue('KeyMarker');
-    final String? uploadIdMarker = extractValue('UploadIdMarker');
-    final String? nextKeyMarker = extractValue('NextKeyMarker');
-    final String? nextUploadIdMarker = extractValue('NextUploadIdMarker');
-    final String? delimiter = extractValue('Delimiter');
-    final String? prefix = extractValue('Prefix');
-    final String? maxUploadsStr = extractValue('MaxUploads');
-    final String? isTruncatedStr = extractValue('IsTruncated');
-    final String? encodingType = extractValue('EncodingType');
-
-    if (bucket == null || maxUploadsStr == null || isTruncatedStr == null) {
-      throw FormatException(
-        'Invalid XML format: Missing required fields (Bucket, MaxUploads, IsTruncated)',
-      );
-    }
-
-    final int? maxUploads = int.tryParse(maxUploadsStr);
-    if (maxUploads == null) {
-      throw FormatException('Invalid MaxUploads format: $maxUploadsStr');
-    }
-
-    // Handle boolean parsing carefully
-    final bool isTruncated = isTruncatedStr.toLowerCase() == 'true';
-
-    // Extract Upload blocks
-    final List<UploadInfo> uploads = [];
-    final Iterable<RegExpMatch> uploadMatches = RegExp(
-      r'<Upload>(.*?)<\/Upload>',
-      dotAll: true,
-    ).allMatches(xmlString);
-    for (final RegExpMatch match in uploadMatches) {
-      final String uploadFragment = match.group(1)!;
-      try {
-        uploads.add(UploadInfo.fromXmlFragment(uploadFragment));
-      } catch (e) {
-        // Optionally log the error or rethrow with more context
-        print('Error parsing Upload fragment: $e');
-        // Decide whether to skip the problematic fragment or fail entirely
-        // throw FormatException('Failed to parse one of the Upload entries: $e');
-      }
-    }
-
-    // Extract CommonPrefixes blocks
-    final List<String> commonPrefixes = extractMultipleValues(
-      'CommonPrefixes',
-      'Prefix',
-    );
-
-    // --- Return statement arguments reordered to match constructor ---
-    return ListMultipartUploadsResult(
-      bucket: bucket,
-      commonPrefixes: commonPrefixes, // Reordered
-      delimiter: delimiter,
-      encodingType: encodingType, // Reordered
-      isTruncated: isTruncated, // Reordered
-      keyMarker: keyMarker,
-      maxUploads: maxUploads, // Reordered
-      nextKeyMarker: nextKeyMarker,
-      nextUploadIdMarker: nextUploadIdMarker,
-      prefix: prefix, // Reordered
-      uploadIdMarker: uploadIdMarker, // Reordered
-      uploads: uploads, // Reordered
-    );
-  }
 
   /// 返回实例的字符串表示
   ///
@@ -405,7 +409,7 @@ class ListMultipartUploadsResult {
     Duration threshold = const Duration(hours: 24),
   }) {
     final DateTime now = DateTime.now();
-    return uploads.where((upload) {
+    return uploads.where((UploadInfo upload) {
       final Duration age = now.difference(upload.initiated);
       return age >= threshold;
     }).toList();
@@ -437,10 +441,13 @@ class ListMultipartUploadsResult {
   /// ```
   Map<String, String?> getNextPageParams() {
     if (!isTruncated) {
-      return {};
+      return <String, String?>{};
     }
 
-    return {'keyMarker': nextKeyMarker, 'uploadIdMarker': nextUploadIdMarker};
+    return <String, String?>{
+      'keyMarker': nextKeyMarker,
+      'uploadIdMarker': nextUploadIdMarker,
+    };
   }
 
   /// 按照前缀过滤分片上传任务
@@ -460,6 +467,8 @@ class ListMultipartUploadsResult {
   /// print('图片上传任务数量: ${imageUploads.length}');
   /// ```
   List<UploadInfo> filterByPrefix(String prefix) {
-    return uploads.where((upload) => upload.key.startsWith(prefix)).toList();
+    return uploads
+        .where((UploadInfo upload) => upload.key.startsWith(prefix))
+        .toList();
   }
 }

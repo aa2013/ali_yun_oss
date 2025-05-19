@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/config/config.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/interfaces/sign_strategy.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
 import 'package:dart_aliyun_oss/src/strategy/strategy.dart';
 import 'package:dart_aliyun_oss/src/utils/utils.dart';
+import 'package:dio/dio.dart';
 
 import 'impl/abort_multipart_upload_impl.dart';
 import 'impl/complete_multipart_upload_impl.dart';
@@ -82,6 +82,13 @@ class OSSClient
         MultipartUploadImpl,
         SignedUrlImpl {
   //============================================================
+  // 构造函数
+  //============================================================
+
+  /// 私有构造函数
+  OSSClient._();
+
+  //============================================================
   // 私有成员变量 & 单例实现
   //============================================================
 
@@ -152,9 +159,6 @@ class OSSClient
     }
     return _instance;
   }
-
-  /// 私有构造函数
-  OSSClient._();
 
   //============================================================
   // 初始化
@@ -236,7 +240,7 @@ class OSSClient
 
       // 初始化签名策略
       // 创建两种签名策略的实例,并存储在映射中供后续使用
-      _instance._signStrategies = {
+      _instance._signStrategies = <bool, IOSSSignStrategy>{
         true: V1SignStrategy(config), // V1 签名算法（旧版，基于 HMAC-SHA1）
         false: AliOssV4SignStrategy(config), // V4 签名算法（新版,基于 HMAC-SHA256,默认使用）
       };
@@ -329,8 +333,8 @@ class OSSClient
     // 将所有查询参数转换为字符串
     Map<String, String>? stringQueryParams;
     if (queryParameters != null && queryParameters.isNotEmpty) {
-      stringQueryParams = {};
-      queryParameters.forEach((key, value) {
+      stringQueryParams = <String, String>{};
+      queryParameters.forEach((String key, dynamic value) {
         if (value != null) {
           // 根据不同类型进行安全转换
           if (value is String) {
@@ -427,7 +431,7 @@ class OSSClient
     // 合并查询参数
     Map<String, dynamic>? mergedQueryParams = queryParameters;
     if (params?.queryParameters != null) {
-      mergedQueryParams = mergedQueryParams ?? {};
+      mergedQueryParams = mergedQueryParams ?? <String, dynamic>{};
       mergedQueryParams.addAll(params!.queryParameters!);
     }
 
@@ -442,8 +446,9 @@ class OSSClient
     // 注意：大小写不敏感的头部处理
     final String? headerContentType = baseHeaders.entries
         .firstWhere(
-          (entry) => entry.key.toLowerCase() == 'content-type',
-          orElse: () => const MapEntry('', null),
+          (MapEntry<String, dynamic> entry) =>
+              entry.key.toLowerCase() == 'content-type',
+          orElse: () => const MapEntry<String, dynamic>('', null),
         )
         .value as String?;
 
@@ -452,8 +457,8 @@ class OSSClient
         'application/octet-stream'; // 提供一个默认值
 
     // 构建标准化的头部 Map（全部小写键）
-    final Map<String, dynamic> normalizedHeaders = {};
-    baseHeaders.forEach((key, value) {
+    final Map<String, dynamic> normalizedHeaders = <String, dynamic>{};
+    baseHeaders.forEach((String key, dynamic value) {
       normalizedHeaders[key.toLowerCase()] = value;
     });
 

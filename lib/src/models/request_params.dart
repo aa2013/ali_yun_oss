@@ -29,6 +29,30 @@ import 'package:dio/dio.dart';
 /// final response = await ossClient.getObject('example.txt', params: params);
 /// ```
 class OSSRequestParams {
+
+  /// 构造函数
+  ///
+  /// 创建一个新的 [OSSRequestParams] 实例，包含指定的参数。
+  ///
+  /// 参数：
+  /// - [bucketName] 可选的存储空间名称
+  /// - [dateTime] 可选的请求时间
+  /// - [isV1Signature] 是否使用V1签名算法，默认为 false（使用V4签名）
+  /// - [options] 可选的Dio请求配置
+  /// - [cancelToken] 可选的取消令牌
+  /// - [onReceiveProgress] 可选的下载进度回调
+  /// - [onSendProgress] 可选的上传进度回调
+  /// - [queryParameters] 可选的查询参数
+  const OSSRequestParams({
+    this.bucketName,
+    this.dateTime,
+    this.isV1Signature = false,
+    this.options,
+    this.cancelToken,
+    this.onReceiveProgress,
+    this.onSendProgress,
+    this.queryParameters,
+  });
   /// 存储空间名称
   ///
   /// 可选的自定义存储空间名称,如果提供,将覆盖全局配置中的默认存储空间。
@@ -96,30 +120,6 @@ class OSSRequestParams {
   /// );
   /// ```
   final Map<String, dynamic>? queryParameters;
-
-  /// 构造函数
-  ///
-  /// 创建一个新的 [OSSRequestParams] 实例，包含指定的参数。
-  ///
-  /// 参数：
-  /// - [bucketName] 可选的存储空间名称
-  /// - [dateTime] 可选的请求时间
-  /// - [isV1Signature] 是否使用V1签名算法，默认为 false（使用V4签名）
-  /// - [options] 可选的Dio请求配置
-  /// - [cancelToken] 可选的取消令牌
-  /// - [onReceiveProgress] 可选的下载进度回调
-  /// - [onSendProgress] 可选的上传进度回调
-  /// - [queryParameters] 可选的查询参数
-  const OSSRequestParams({
-    this.bucketName,
-    this.dateTime,
-    this.isV1Signature = false,
-    this.options,
-    this.cancelToken,
-    this.onReceiveProgress,
-    this.onSendProgress,
-    this.queryParameters,
-  });
 
   /// 创建一个包含可选修改的新实例
   ///

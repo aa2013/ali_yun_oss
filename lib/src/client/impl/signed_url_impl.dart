@@ -1,3 +1,4 @@
+import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/strategy/strategy.dart';
 
@@ -82,12 +83,12 @@ mixin SignedUrlImpl on IOSSService {
     }
 
     // 使用配置中的默认值
-    final client = this as dynamic;
-    final bucket = bucketName ?? client.config.bucketName;
-    final accessKeyId = client.config.accessKeyId;
-    final accessKeySecret = client.config.accessKeySecret;
-    final endpoint = client.config.endpoint;
-    final securityToken = client.config.securityToken;
+    final OSSClient client = this as OSSClient;
+    final String bucket = bucketName ?? client.config.bucketName;
+    final String accessKeyId = client.config.accessKeyId;
+    final String accessKeySecret = client.config.accessKeySecret;
+    final String endpoint = client.config.endpoint;
+    final String? securityToken = client.config.securityToken;
 
     // 根据签名算法选择不同的实现
     if (isV1Signature) {
@@ -108,8 +109,8 @@ mixin SignedUrlImpl on IOSSService {
     } else {
       // 使用 V4 签名算法
       // 验证区域信息
-      final region = client.config.region;
-      if (region == null || region.isEmpty) {
+      final String region = client.config.region;
+      if (region.isEmpty) {
         throw ArgumentError('使用 V4 签名时,config.region 不能为空');
       }
 

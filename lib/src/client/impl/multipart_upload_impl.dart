@@ -5,11 +5,11 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:dart_aliyun_oss/src/client/client.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
 import 'package:dart_aliyun_oss/src/utils/utils.dart';
+import 'package:dio/dio.dart';
 
 mixin MultipartUploadImpl on IOSSService {
   /// 阿里云 OSS 分片上传实现
@@ -92,7 +92,7 @@ mixin MultipartUploadImpl on IOSSService {
     CancelToken? cancelToken,
     OSSRequestParams? params,
   }) async {
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     final String requestKey =
         'multipartUpload_${ossObjectKey}_${DateTime.now().millisecondsSinceEpoch}';
     final Lock progressLock = Lock();
@@ -103,29 +103,30 @@ mixin MultipartUploadImpl on IOSSService {
       params = params?.copyWith(cancelToken: effectiveToken);
 
       String? uploadId;
-      List<PartInfo?> uploadedPartsInfo = [];
+      List<PartInfo?> uploadedPartsInfo = <PartInfo?>[];
       int totalUploadedSize = 0;
       bool hasErrorOccurred = false;
 
       try {
         // 1. 检查文件是否存在
-        if (!await file.exists()) {
+        if (!file.existsSync()) {
           throw OSSException(
             type: OSSErrorType.fileSystem,
             message: '文件未找到: ${file.path}',
           );
         }
 
-        final int totalFileSize = await file.length();
+        final int totalFileSize = file.lengthSync();
         if (totalFileSize == 0) {
-          throw OSSException(
+          throw const OSSException(
             type: OSSErrorType.invalidArgument,
             message: '文件大小为0,不能进行分片上传',
           );
         }
 
         // 2. 计算分片配置
-        final partConfig = OSSUtils.calculatePartConfig(
+        final ({int numberOfParts, int partSize}) partConfig =
+            OSSUtils.calculatePartConfig(
           totalFileSize,
           numberOfParts,
         );
@@ -134,7 +135,7 @@ mixin MultipartUploadImpl on IOSSService {
 
         // 验证分片大小是否在允许范围内
         if (partSize < 100 * 1024 || partSize > 5 * 1024 * 1024 * 1024) {
-          throw OSSException(
+          throw const OSSException(
             type: OSSErrorType.invalidArgument,
             message: '分片大小必须在 100KB 到 5GB 之间',
           );
@@ -142,7 +143,7 @@ mixin MultipartUploadImpl on IOSSService {
 
         // 验证分片数量是否在允许范围内
         if (numParts < 1 || numParts > 10000) {
-          throw OSSException(
+          throw const OSSException(
             type: OSSErrorType.invalidArgument,
             message: '分片数量必须在 1 到 10000 之间',
           );
@@ -179,17 +180,19 @@ mixin MultipartUploadImpl on IOSSService {
         }
 
         // 4. 并发上传分片 - 使用信号量控制并发
-        final semaphore = Semaphore(
+        final Semaphore semaphore = Semaphore(
           maxConcurrency ?? client.config.maxConcurrency,
         );
-        final List<Future<void>> partTasks = [];
+        final List<Future<void>> partTasks = <Future<void>>[];
 
         for (int i = 0; i < numParts; i++) {
           final int partNumber = i + 1;
           final int offset = i * partSize;
           final int readLength = math.min(partSize, totalFileSize - offset);
 
-          if (readLength <= 0) break;
+          if (readLength <= 0) {
+            break;
+          }
 
           // 为每个分片创建一个独立的上传任务,使用信号量控制并发
           final Future<void> partTask = semaphore.acquire().then((_) async {
@@ -212,16 +215,17 @@ mixin MultipartUploadImpl on IOSSService {
                 effectiveToken: effectiveToken,
                 onPartProgress: onPartProgress,
                 isErrorGlobally: hasErrorOccurred,
-                onSuccess: (partInfo) {
+                onSuccess: (PartInfo partInfo) {
                   uploadedPartsInfo[i] = partInfo;
                   progressLock.synchronized(() {
                     if (!hasErrorOccurred) {
                       totalUploadedSize += readLength;
-                      params?.onSendProgress?.call(totalUploadedSize, totalFileSize);
+                      params?.onSendProgress
+                          ?.call(totalUploadedSize, totalFileSize);
                     }
                   });
                 },
-                onError: (e, s) {
+                onError: (dynamic e, StackTrace s) {
                   log(
                     '上传分片 $partNumber 时出错',
                     error: e,
@@ -256,14 +260,14 @@ mixin MultipartUploadImpl on IOSSService {
 
         // 检查是否有错误发生或请求被取消
         if (hasErrorOccurred) {
-          throw OSSException(
+          throw const OSSException(
             type: OSSErrorType.uploadPartFailed,
             message: '分片上传过程中发生错误,上传已中止。',
           );
         }
 
         if (effectiveToken.isCancelled) {
-          throw OSSException(
+          throw const OSSException(
             type: OSSErrorType.requestCancelled,
             message: '分片上传在上传分片过程中被取消。',
           );
@@ -297,7 +301,7 @@ mixin MultipartUploadImpl on IOSSService {
             await client.abortMultipartUpload(
               ossObjectKey,
               uploadId,
-              params: params?.copyWith(cancelToken: null),
+              params: params?.copyWith(),
             );
             log('成功中止分片上传: $uploadId');
           } catch (abortError) {
@@ -342,28 +346,34 @@ mixin MultipartUploadImpl on IOSSService {
     required Function(dynamic error, StackTrace stackTrace) onError,
   }) async {
     try {
-      if (effectiveToken.isCancelled || isErrorGlobally) return;
+      if (effectiveToken.isCancelled || isErrorGlobally) {
+        return;
+      }
 
-      final raf = await file.open(mode: FileMode.read);
+      final RandomAccessFile raf = await file.open();
       StreamController<List<int>>? controller;
 
       try {
         await raf.setPosition(offset);
-        final bufferSize = math.min(length, 64 * 1024); // 64KB 缓冲区
-        final buffer = Uint8List(bufferSize);
+        final int bufferSize = math.min(length, 64 * 1024); // 64KB 缓冲区
+        final Uint8List buffer = Uint8List(bufferSize);
 
         controller = StreamController<List<int>>(
           onListen: () async {
             int totalBytesRead = 0;
             try {
               while (totalBytesRead < length && !controller!.isClosed) {
-                final remainingBytes = length - totalBytesRead;
-                final bytesToRead = math.min(bufferSize, remainingBytes);
-                final bytesRead = await raf.readInto(buffer, 0, bytesToRead);
+                final int remainingBytes = length - totalBytesRead;
+                final int bytesToRead = math.min(bufferSize, remainingBytes);
+                final int bytesRead =
+                    await raf.readInto(buffer, 0, bytesToRead);
 
-                if (bytesRead <= 0) break;
+                if (bytesRead <= 0) {
+                  break;
+                }
 
-                final chunk = Uint8List.fromList(buffer.sublist(0, bytesRead));
+                final Uint8List chunk =
+                    Uint8List.fromList(buffer.sublist(0, bytesRead));
                 controller.add(chunk);
                 totalBytesRead += bytesRead;
               }
@@ -390,9 +400,9 @@ mixin MultipartUploadImpl on IOSSService {
 
         // 上传分片
         // 创建一个新的 params，包含 cancelToken 和 onSendProgress
-        final uploadParams = params?.copyWith(
+        final OSSRequestParams? uploadParams = params?.copyWith(
           cancelToken: effectiveToken,
-          onSendProgress: (count, total) {
+          onSendProgress: (int count, int total) {
             onPartProgress?.call(partNumber, count, length);
           },
         );

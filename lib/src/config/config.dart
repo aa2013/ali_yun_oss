@@ -10,6 +10,54 @@ import 'package:dio/dio.dart';
 /// - 网络请求配置（Dio实例和拦截器）
 /// - 性能配置（并发数等）
 class OSSConfig {
+  const OSSConfig({
+    required this.accessKeyId,
+    required this.accessKeySecret,
+    required this.bucketName,
+    required this.endpoint,
+    required this.region,
+    this.securityToken,
+    this.dio,
+    this.enableLogInterceptor = true,
+    this.interceptors,
+    this.maxConcurrency = 5,
+  });
+
+  /// 构造函数
+  ///
+  /// 创建一个新的OSS配置实例。
+  ///
+  /// 参数说明：
+  /// - [accessKeyId] OSS访问密钥ID
+  /// - [accessKeySecret] OSS访问密钥密码
+  /// - [bucketName] OSS存储空间名称
+  /// - [endpoint] OSS服务的访问域名
+  /// - [region] OSS服务的地域
+  /// - [dio] 可选的自定义Dio实例
+  /// - [enableLogInterceptor] 是否启用日志拦截器,默认为true
+  /// - [interceptors] 可选的自定义拦截器列表
+  /// - [maxConcurrency] 分片上传的最大并发数,默认为5
+  /// 从 JSON 数据创建 OSSConfig 实例
+  ///
+  /// 这在从配置文件或远程服务加载配置时非常有用。
+  ///
+  /// 参数：
+  /// - [json] 包含配置数据的 Map
+  ///
+  /// 返回一个新的 [OSSConfig] 实例
+  factory OSSConfig.fromJson(Map<String, dynamic> json) {
+    return OSSConfig(
+      accessKeyId: json['accessKeyId'] as String,
+      accessKeySecret: json['accessKeySecret'] as String,
+      bucketName: json['bucketName'] as String,
+      endpoint: json['endpoint'] as String,
+      region: json['region'] as String,
+      securityToken: json['securityToken'] as String?,
+      enableLogInterceptor: json['enableLogInterceptor'] as bool? ?? true,
+      maxConcurrency: json['maxConcurrency'] as int? ?? 5,
+    );
+  }
+
   /// OSS访问密钥ID
   ///
   /// 用于身份验证的AccessKey ID,可从阿里云控制台获取
@@ -79,48 +127,13 @@ class OSSConfig {
   /// 如果使用长期密钥访问,此字段为null
   final String? securityToken;
 
-  /// 构造函数
-  ///
-  /// 创建一个新的OSS配置实例。
-  ///
-  /// 参数说明：
-  /// - [accessKeyId] OSS访问密钥ID
-  /// - [accessKeySecret] OSS访问密钥密码
-  /// - [bucketName] OSS存储空间名称
-  /// - [endpoint] OSS服务的访问域名
-  /// - [region] OSS服务的地域
-  /// - [dio] 可选的自定义Dio实例
-  /// - [enableLogInterceptor] 是否启用日志拦截器,默认为true
-  /// - [interceptors] 可选的自定义拦截器列表
-  /// - [maxConcurrency] 分片上传的最大并发数,默认为5
-  /// 从 JSON 数据创建 OSSConfig 实例
-  ///
-  /// 这在从配置文件或远程服务加载配置时非常有用。
-  ///
-  /// 参数：
-  /// - [json] 包含配置数据的 Map
-  ///
-  /// 返回一个新的 [OSSConfig] 实例
-  factory OSSConfig.fromJson(Map<String, dynamic> json) {
-    return OSSConfig(
-      accessKeyId: json['accessKeyId'] as String,
-      accessKeySecret: json['accessKeySecret'] as String,
-      bucketName: json['bucketName'] as String,
-      endpoint: json['endpoint'] as String,
-      region: json['region'] as String,
-      securityToken: json['securityToken'] as String?,
-      enableLogInterceptor: json['enableLogInterceptor'] as bool? ?? true,
-      maxConcurrency: json['maxConcurrency'] as int? ?? 5,
-    );
-  }
-
   /// 将配置转换为 JSON 格式
   ///
   /// 这在需要将配置保存到文件或发送到远程服务时非常有用。
   ///
   /// 返回一个包含配置数据的 Map
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {
+    final Map<String, dynamic> json = <String, dynamic>{
       'accessKeyId': accessKeyId,
       'accessKeySecret': accessKeySecret,
       'bucketName': bucketName,
@@ -137,19 +150,6 @@ class OSSConfig {
 
     return json;
   }
-
-  const OSSConfig({
-    required this.accessKeyId,
-    required this.accessKeySecret,
-    required this.bucketName,
-    required this.endpoint,
-    required this.region,
-    this.securityToken,
-    this.dio,
-    this.enableLogInterceptor = true,
-    this.interceptors,
-    this.maxConcurrency = 5,
-  });
 
   /// 创建一个用于测试的默认配置
   ///
@@ -179,7 +179,6 @@ class OSSConfig {
       endpoint: endpoint,
       region: region,
       securityToken: securityToken,
-      enableLogInterceptor: true,
       maxConcurrency: 3,
     );
   }
@@ -228,10 +227,9 @@ class OSSConfig {
 
   @override
   String toString() {
-    final securityTokenStr =
-        securityToken != null
-            ? 'securityToken: ${securityToken!.substring(0, min(3, securityToken!.length))}***, '
-            : '';
+    final String securityTokenStr = securityToken != null
+        ? 'securityToken: ${securityToken!.substring(0, min(3, securityToken!.length))}***, '
+        : '';
 
     return 'OSSConfig(accessKeyId: ${accessKeyId.substring(0, 3)}***, '
         'accessKeySecret: ${accessKeySecret.substring(0, 3)}***, '
@@ -245,7 +243,9 @@ class OSSConfig {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
 
     return other is OSSConfig &&
         other.accessKeyId == accessKeyId &&

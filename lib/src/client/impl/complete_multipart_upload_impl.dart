@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 /// 完成分片上传的实现类
 ///
@@ -40,19 +40,19 @@ mixin CompleteMultipartUploadImpl on IOSSService {
   }) async {
     // 添加参数验证
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能为空',
       );
     }
     if (uploadId.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'Upload ID 不能为空',
       );
     }
     if (parts.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: '分片列表不能为空',
       );
@@ -61,28 +61,29 @@ mixin CompleteMultipartUploadImpl on IOSSService {
     // 验证分片顺序
     for (int i = 0; i < parts.length - 1; i++) {
       if (parts[i].partNumber >= parts[i + 1].partNumber) {
-        throw OSSException(
+        throw const OSSException(
           type: OSSErrorType.invalidArgument,
           message: '分片必须按照分片号升序排列',
         );
       }
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     final String requestKey = '$fileKey-$uploadId-complete';
     return client.requestHandler.executeRequest(
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
         // 准备查询参数
-        final Map<String, dynamic> queryParams = {
+        final Map<String, dynamic> queryParams = <String, dynamic>{
           'uploadId': uploadId,
           if (encodingType != null) 'encoding-type': encodingType,
         };
 
         // 更新请求参数
-        final updatedParams = params ?? OSSRequestParams();
-        final paramsWithQuery = updatedParams.copyWith(
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
+        final OSSRequestParams paramsWithQuery = updatedParams.copyWith(
           queryParameters: queryParams,
         );
 
@@ -108,9 +109,9 @@ mixin CompleteMultipartUploadImpl on IOSSService {
         final String xmlBody = xmlBuffer.toString();
         final List<int> xmlBodyBytes = utf8.encode(xmlBody);
 
-        final Map<String, dynamic> baseHeaders = {
+        final Map<String, dynamic> baseHeaders = <String, dynamic>{
           'Content-Type': 'application/xml',
-          ...(params?.options?.headers ?? {}),
+          ...(params?.options?.headers ?? <String, dynamic>{}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
@@ -145,7 +146,7 @@ mixin CompleteMultipartUploadImpl on IOSSService {
           if (result.location.isEmpty ||
               result.bucket.isEmpty ||
               result.key.isEmpty) {
-            throw OSSException(
+            throw const OSSException(
               type: OSSErrorType.serverError,
               message: '服务器返回的结果不完整',
             );

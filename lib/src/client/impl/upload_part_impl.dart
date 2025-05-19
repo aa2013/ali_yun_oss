@@ -1,8 +1,8 @@
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 /// 分片上传实现类
 ///
@@ -46,44 +46,45 @@ mixin UploadPartImpl on IOSSService {
   }) async {
     // 添加参数验证
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'fileKey不能为空',
       );
     }
     if (partNumber < 1 || partNumber > 10000) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'partNumber必须在1-10000之间',
       );
     }
     if (uploadId.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'uploadId不能为空',
       );
     }
     if (partData.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'partData不能为空',
       );
     }
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     final String requestKey = '$fileKey-$uploadId-$partNumber';
     return client.requestHandler.executeRequest(
       requestKey,
       params?.cancelToken,
       (CancelToken cancelToken) async {
         // 准备查询参数
-        final Map<String, dynamic> queryParams = {
+        final Map<String, dynamic> queryParams = <String, dynamic>{
           'partNumber': partNumber,
           'uploadId': uploadId,
         };
 
         // 更新请求参数
-        final updatedParams = params ?? OSSRequestParams();
-        final paramsWithQuery = updatedParams.copyWith(
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
+        final OSSRequestParams paramsWithQuery = updatedParams.copyWith(
           queryParameters: queryParams,
         );
 
@@ -93,8 +94,8 @@ mixin UploadPartImpl on IOSSService {
           queryParameters: paramsWithQuery.queryParameters,
         );
 
-        final Map<String, dynamic> baseHeaders = {
-          ...(paramsWithQuery.options?.headers ?? {}),
+        final Map<String, dynamic> baseHeaders = <String, dynamic>{
+          ...(paramsWithQuery.options?.headers ?? <String, dynamic>{}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
@@ -146,13 +147,13 @@ mixin UploadPartImpl on IOSSService {
   }) async {
     // 添加参数验证
     if (contentLength <= 0) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'contentLength必须大于0',
       );
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     // 优化requestKey生成方式,避免时间戳冲突
     final String requestKey =
         'uploadPartStream_${fileKey}_${uploadId}_$partNumber';
@@ -162,14 +163,15 @@ mixin UploadPartImpl on IOSSService {
       params?.cancelToken,
       (CancelToken effectiveToken) async {
         // 准备查询参数
-        final Map<String, dynamic> queryParams = {
+        final Map<String, dynamic> queryParams = <String, dynamic>{
           'partNumber': partNumber,
           'uploadId': uploadId,
         };
 
         // 更新请求参数
-        final updatedParams = params ?? OSSRequestParams();
-        final paramsWithQuery = updatedParams.copyWith(
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
+        final OSSRequestParams paramsWithQuery = updatedParams.copyWith(
           queryParameters: queryParams,
         );
 
@@ -179,8 +181,8 @@ mixin UploadPartImpl on IOSSService {
           queryParameters: paramsWithQuery.queryParameters,
         );
 
-        final Map<String, dynamic> baseHeaders = {
-          ...(paramsWithQuery.options?.headers ?? {}),
+        final Map<String, dynamic> baseHeaders = <String, dynamic>{
+          ...(paramsWithQuery.options?.headers ?? <String, dynamic>{}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(

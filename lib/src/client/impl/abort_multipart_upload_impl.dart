@@ -1,8 +1,8 @@
 import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
-import 'package:dio/dio.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dio/dio.dart';
 
 mixin AbortMultipartUploadImpl on IOSSService {
   /// 终止分片上传
@@ -38,19 +38,19 @@ mixin AbortMultipartUploadImpl on IOSSService {
   }) async {
     // 参数验证
     if (uploadId.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'Upload ID 不能为空',
       );
     }
     if (fileKey.isEmpty) {
-      throw OSSException(
+      throw const OSSException(
         type: OSSErrorType.invalidArgument,
         message: 'File key 不能为空',
       );
     }
 
-    final client = this as OSSClient;
+    final OSSClient client = this as OSSClient;
     final String requestKey = '$fileKey-$uploadId-abort';
 
     return client.requestHandler.executeRequest(
@@ -58,11 +58,14 @@ mixin AbortMultipartUploadImpl on IOSSService {
       params?.cancelToken,
       (CancelToken cancelToken) async {
         // 准备查询参数
-        final Map<String, dynamic> queryParams = {'uploadId': uploadId};
+        final Map<String, dynamic> queryParams = <String, dynamic>{
+          'uploadId': uploadId,
+        };
 
         // 更新请求参数
-        final updatedParams = params ?? OSSRequestParams();
-        final paramsWithQuery = updatedParams.copyWith(
+        final OSSRequestParams updatedParams =
+            params ?? const OSSRequestParams();
+        final OSSRequestParams paramsWithQuery = updatedParams.copyWith(
           queryParameters: queryParams,
         );
 
@@ -74,8 +77,8 @@ mixin AbortMultipartUploadImpl on IOSSService {
         );
 
         // 复用基础请求头
-        final Map<String, dynamic> baseHeaders = {
-          ...(paramsWithQuery.options?.headers ?? {}),
+        final Map<String, dynamic> baseHeaders = <String, dynamic>{
+          ...(paramsWithQuery.options?.headers ?? <String, dynamic>{}),
         };
 
         final Map<String, dynamic> headers = client.createSignedHeaders(
@@ -98,7 +101,6 @@ mixin AbortMultipartUploadImpl on IOSSService {
           uri: uri,
           method: 'DELETE',
           options: requestOptions,
-          data: null,
           cancelToken: cancelToken,
         );
 

@@ -29,7 +29,7 @@ class OSSLogInterceptor extends Interceptor {
     this.responseBody = false,
     this.error = true,
     this.logPrint = print,
-    this.sensitiveHeaders = const ['Authorization', 'Proxy-Authorization'],
+    this.sensitiveHeaders = const <String>['Authorization', 'Proxy-Authorization'],
     this.maxLogLength = 500,
   });
 
@@ -100,7 +100,7 @@ class OSSLogInterceptor extends Interceptor {
   /// [response] 响应对象
   /// [handler] 响应拦截处理器
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
+  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
     logPrint('*** OSS Response ***');
     _printResponse(response);
     handler.next(response);
@@ -129,7 +129,7 @@ class OSSLogInterceptor extends Interceptor {
   /// 打印响应的详细信息
   ///
   /// [response] Dio 响应对象
-  void _printResponse(Response response) {
+  void _printResponse(Response<dynamic> response) {
     _printKV('uri', response.requestOptions.uri);
     if (responseHeader) {
       _printKV('statusCode', response.statusCode);
@@ -186,7 +186,7 @@ class OSSLogInterceptor extends Interceptor {
       // Map 数据,如果过长则截断
       if (data.length > maxMapEntries) {
         logPrint(
-          'Map data: {${data.keys.take(maxMapEntries).map((key) => '$key: ${data[key]}').join(', ')}, ...} (being cut down, total: ${data.length} entries)',
+          'Map data: {${data.keys.take(maxMapEntries).map((dynamic key) => '$key: ${data[key]}').join(', ')}, ...} (being cut down, total: ${data.length} entries)',
         );
       } else {
         logPrint(data);

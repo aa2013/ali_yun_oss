@@ -33,7 +33,7 @@ class AliOssV4SignUtils {
   static const String _ossHeaderPrefix = 'x-oss-';
 
   /// 默认需要签名的头部
-  static const _defaultSignHeaders = {
+  static const Set<String> _defaultSignHeaders = <String>{
     'x-oss-date',
     'x-oss-content-sha256',
     'content-type',
@@ -95,7 +95,7 @@ class AliOssV4SignUtils {
     required String key,
     required Uri uri,
     required Map<String, dynamic> headers,
-    Set<String> additionalHeaders = const {},
+    Set<String> additionalHeaders = const <String>{},
     String? securityToken,
     DateTime? dateTime,
   }) {
@@ -124,7 +124,6 @@ class AliOssV4SignUtils {
     final String canonicalUri = _buildCanonicalUri(
       bucket,
       key,
-      isForSignedUrl: false,
     );
     final String canonicalQuery = _buildCanonicalQuery(uri);
     final String canonicalHeaders = _buildCanonicalHeaders(
@@ -133,13 +132,14 @@ class AliOssV4SignUtils {
     );
 
     // 5. 处理额外头部
-    final List<String> addHeaders =
-        additionalHeaders.where((e) => !_isDefaultSignHeader(e)).toList()
-          ..sort();
+    final List<String> addHeaders = additionalHeaders
+        .where((String e) => !_isDefaultSignHeader(e))
+        .toList()
+      ..sort();
     final String additionalHeadersString = addHeaders.join(';');
 
     // 6. 构建规范请求
-    final String canonicalRequestString = [
+    final String canonicalRequestString = <String>[
       method.toUpperCase(),
       canonicalUri,
       canonicalQuery,
@@ -235,7 +235,7 @@ class AliOssV4SignUtils {
     required String key,
     required Uri uri,
     required Map<String, dynamic> headers,
-    Set<String> additionalHeaders = const {},
+    Set<String> additionalHeaders = const <String>{},
     String? securityToken,
     DateTime? dateTime,
   }) {
@@ -285,7 +285,7 @@ class AliOssV4SignUtils {
     required String additionalHeaders,
     required String signature,
   }) {
-    final List<String> components = [
+    final List<String> components = <String>[
       'OSS4-HMAC-SHA256 Credential=$accessKeyId/$scope',
     ];
 
@@ -370,8 +370,8 @@ class AliOssV4SignUtils {
       final String encodedKey = Uri.encodeQueryComponent(key);
 
       // 获取参数值并排序
-      final List<String> values = List<String>.from(queryParams[key] ?? [])
-        ..sort();
+      final List<String> values =
+          List<String>.from(queryParams[key] ?? <String>[])..sort();
 
       // 处理每个值
       for (final String value in values) {
@@ -406,7 +406,7 @@ class AliOssV4SignUtils {
   ) {
     // 转换所有键为小写, 以符合规范
     final Map<String, String> lowerHeaders = <String, String>{};
-    headers.forEach((key, value) {
+    headers.forEach((String key, dynamic value) {
       lowerHeaders[key.toLowerCase()] = (value?.toString() ?? '').trim();
     });
 
@@ -458,7 +458,7 @@ class AliOssV4SignUtils {
     final String hashedRequest = hex.encode(digest.bytes);
 
     // 构建待签名字符串的组成部分
-    final List<String> components = [
+    final List<String> components = <String>[
       'OSS4-HMAC-SHA256', // 算法标识
       iso8601Time, // 时间戳
       scope, // 签名范围
@@ -610,7 +610,7 @@ class AliOssV4SignUtils {
     headers['host'] = host; // 确保 host 头部存在
 
     // 6. 构建查询参数
-    final Map<String, String> queryParams = {
+    final Map<String, String> queryParams = <String, String>{
       'x-oss-credential':
           '$accessKeyId/$signDate/$region/oss/aliyun_v4_request',
       'x-oss-date': signTime,
@@ -645,9 +645,10 @@ class AliOssV4SignUtils {
     );
 
     // 5.3 构建签名头部列表
-    final List<String> addHeaders =
-        additionalHeaders.where((e) => !_isDefaultSignHeader(e)).toList()
-          ..sort();
+    final List<String> addHeaders = additionalHeaders
+        .where((String e) => !_isDefaultSignHeader(e))
+        .toList()
+      ..sort();
     final String additionalHeadersString = addHeaders.join(';');
 
     // 5.4 获取负载哈希值
@@ -655,7 +656,7 @@ class AliOssV4SignUtils {
         headers['x-oss-content-sha256'] ?? 'UNSIGNED-PAYLOAD';
 
     // 5.5 组合构建规范请求
-    final String canonicalRequest = [
+    final String canonicalRequest = <String>[
       method.toUpperCase(), // HTTP方法
       canonicalUri, // 规范URI
       canonicalQueryString, // 规范查询字符串

@@ -14,10 +14,6 @@ import 'package:dart_aliyun_oss/src/strategy/v1_sign_utils.dart';
 ///
 /// 注意：对于新应用，建议使用更安全的 V4 签名算法。
 class V1SignStrategy implements IOSSSignStrategy {
-  /// OSS 配置信息
-  ///
-  /// 包含访问密钥ID、访问密钥等认证信息。
-  final OSSConfig _config;
 
   /// 构造函数
   ///
@@ -26,6 +22,10 @@ class V1SignStrategy implements IOSSSignStrategy {
   /// 参数：
   /// - [config] OSS 配置信息，包含访问密钥ID和密钥
   V1SignStrategy(this._config);
+  /// OSS 配置信息
+  ///
+  /// 包含访问密钥ID、访问密钥等认证信息。
+  final OSSConfig _config;
 
   /// 生成带签名的HTTP请求头
   ///
