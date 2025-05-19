@@ -444,13 +444,13 @@ class OSSClient
 
     // 尝试从 baseHeaders 获取 Content-Type
     // 注意：大小写不敏感的头部处理
-    final String? headerContentType = baseHeaders.entries
-        .firstWhere(
-          (MapEntry<String, dynamic> entry) =>
-              entry.key.toLowerCase() == 'content-type',
-          orElse: () => const MapEntry<String, dynamic>('', null),
-        )
-        .value as String?;
+    String? headerContentType;
+    for (final MapEntry<String, dynamic> entry in baseHeaders.entries) {
+      if (entry.key.toLowerCase() == 'content-type') {
+        headerContentType = entry.value as String?;
+        break;
+      }
+    }
 
     final String contentType = headerContentType ??
         // 对于 POST application/xml,不应依赖 lookupMimeType
