@@ -15,7 +15,6 @@ import 'package:dart_aliyun_oss/src/strategy/v4_sign_utils.dart';
 ///
 /// 这是推荐的签名策略,对于新应用应优先使用 V4 签名算法。
 class AliOssV4SignStrategy implements IOSSSignStrategy {
-
   /// 构造函数
   ///
   /// 创建一个新的 [AliOssV4SignStrategy] 实例。
@@ -23,6 +22,7 @@ class AliOssV4SignStrategy implements IOSSSignStrategy {
   /// 参数：
   /// - [_config] OSS 配置信息,包含访问密钥ID、密钥、端点和区域
   AliOssV4SignStrategy(this._config);
+
   /// OSS 配置信息
   ///
   /// 包含访问密钥ID、访问密钥、端点和区域等认证信息。
@@ -68,6 +68,7 @@ class AliOssV4SignStrategy implements IOSSSignStrategy {
       key: fileKey,
       uri: uri,
       headers: headers,
+      securityToken: _config.securityToken,
       dateTime: dateTime,
     );
   }

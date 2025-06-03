@@ -128,6 +128,28 @@ final response = await oss.getObject(
 );
 ```
 
+### 使用STS临时令牌
+
+```dart
+// 使用STS临时令牌初始化客户端
+final OSSConfig configWithSTS = OSSConfig(
+  accessKeyId: 'STS.your-sts-access-key-id',
+  accessKeySecret: 'your-sts-access-key-secret',
+  securityToken: 'your-sts-security-token', // STS临时安全令牌
+  bucketName: 'your-bucket-name',
+  endpoint: 'oss-cn-hangzhou.aliyuncs.com',
+  region: 'cn-hangzhou',
+);
+
+final OSSClient ossWithSTS = await OSSClient.initialize(configWithSTS);
+
+// 使用STS临时令牌上传文件
+await ossWithSTS.putObject(
+  File('path/to/file.txt'),
+  'example/file.txt',
+);
+```
+
 ### 生成签名URL
 
 ```dart

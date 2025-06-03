@@ -130,6 +130,28 @@ final response = await oss.getObject(
 );
 ```
 
+### Using STS Temporary Tokens
+
+```dart
+// Initialize client with STS temporary token
+final OSSConfig configWithSTS = OSSConfig(
+  accessKeyId: 'STS.your-sts-access-key-id',
+  accessKeySecret: 'your-sts-access-key-secret',
+  securityToken: 'your-sts-security-token', // STS temporary security token
+  bucketName: 'your-bucket-name',
+  endpoint: 'oss-cn-hangzhou.aliyuncs.com',
+  region: 'cn-hangzhou',
+);
+
+final OSSClient ossWithSTS = await OSSClient.initialize(configWithSTS);
+
+// Upload file using STS temporary token
+await ossWithSTS.putObject(
+  File('path/to/file.txt'),
+  'example/file.txt',
+);
+```
+
 ### Generate Signed URL
 
 ```dart

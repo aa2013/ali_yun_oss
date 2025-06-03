@@ -85,7 +85,7 @@ class AliOssV1SignUtils {
       ...ossHeaders ?? <String, dynamic>{},
     };
     if (securityToken != null) {
-      headers['$_ossHeaderPrefix-security-token'] = securityToken;
+      headers['${_ossHeaderPrefix}security-token'] = securityToken;
     }
 
     // 2. 构建规范OSS头
@@ -207,6 +207,11 @@ class AliOssV1SignUtils {
     // 处理时间参数
     final DateTime now = dateTime ?? DateTime.now().toUtc();
     final String date = HttpDate.format(now);
+
+    // 添加安全令牌到OSS头部（如果有）
+    if (securityToken != null) {
+      ossHeaders['${_ossHeaderPrefix}security-token'] = securityToken;
+    }
 
     // 构建OSS签名
     final String sign = signature(
