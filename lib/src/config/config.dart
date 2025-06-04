@@ -5,31 +5,24 @@ import 'package:dio/dio.dart';
 /// 阿里云OSS配置类
 ///
 /// 用于存储和管理阿里云OSS服务所需的配置信息,包括：
-/// - 访问凭证（AccessKey ID和Secret）
+/// - 访问凭证（AccessKey ID和Secret）- 支持动态获取，天然支持STS令牌刷新
 /// - 存储空间信息（Bucket和Region）
 /// - 网络请求配置（Dio实例和拦截器）
 /// - 性能配置（并发数等）
+///
+/// 认证信息获取方式：
+/// - 使用getter函数动态获取认证信息，支持STS令牌自动刷新
+/// - 每次签名时都会调用getter函数，确保使用最新的认证信息
+/// - 支持静态值和动态值两种模式
 class OSSConfig {
-  const OSSConfig({
-    required this.accessKeyId,
-    required this.accessKeySecret,
-    required this.bucketName,
-    required this.endpoint,
-    required this.region,
-    this.securityToken,
-    this.dio,
-    this.enableLogInterceptor = true,
-    this.interceptors,
-    this.maxConcurrency = 5,
-  });
-
-  /// 构造函数
+  /// 主构造函数（推荐使用）
   ///
-  /// 创建一个新的OSS配置实例。
+  /// 使用getter函数动态获取认证信息，支持STS令牌自动刷新。
   ///
-  /// 参数说明：
-  /// - [accessKeyId] OSS访问密钥ID
-  /// - [accessKeySecret] OSS访问密钥密码
+  /// 参数：
+  /// - [accessKeyIdProvider] 访问密钥ID获取函数
+  /// - [accessKeySecretProvider] 访问密钥Secret获取函数
+  /// - [securityTokenProvider] 安全令牌获取函数（可选，用于STS）
   /// - [bucketName] OSS存储空间名称
   /// - [endpoint] OSS服务的访问域名
   /// - [region] OSS服务的地域
@@ -37,16 +30,71 @@ class OSSConfig {
   /// - [enableLogInterceptor] 是否启用日志拦截器,默认为true
   /// - [interceptors] 可选的自定义拦截器列表
   /// - [maxConcurrency] 分片上传的最大并发数,默认为5
+  const OSSConfig({
+    required this.accessKeyIdProvider,
+    required this.accessKeySecretProvider,
+    this.securityTokenProvider,
+    required this.bucketName,
+    required this.endpoint,
+    required this.region,
+    this.dio,
+    this.enableLogInterceptor = true,
+    this.interceptors,
+    this.maxConcurrency = 5,
+  });
+
+  /// 便捷构造函数（向后兼容静态值）
+  ///
+  /// 使用静态认证信息创建配置，内部会转换为getter函数形式。
+  /// 这个构造函数主要用于向后兼容和简化静态配置的使用。
+  ///
+  /// 参数：
+  /// - [accessKeyId] OSS访问密钥ID
+  /// - [accessKeySecret] OSS访问密钥密码
+  /// - [securityToken] STS临时安全凭证的安全令牌（可选）
+  /// - [bucketName] OSS存储空间名称
+  /// - [endpoint] OSS服务的访问域名
+  /// - [region] OSS服务的地域
+  /// - [dio] 可选的自定义Dio实例
+  /// - [enableLogInterceptor] 是否启用日志拦截器,默认为true
+  /// - [interceptors] 可选的自定义拦截器列表
+  /// - [maxConcurrency] 分片上传的最大并发数,默认为5
+  OSSConfig.static({
+    required String accessKeyId,
+    required String accessKeySecret,
+    String? securityToken,
+    required String bucketName,
+    required String endpoint,
+    required String region,
+    Dio? dio,
+    bool enableLogInterceptor = true,
+    List<Interceptor>? interceptors,
+    int maxConcurrency = 5,
+  }) : this(
+          accessKeyIdProvider: () => accessKeyId,
+          accessKeySecretProvider: () => accessKeySecret,
+          securityTokenProvider:
+              securityToken != null ? () => securityToken : null,
+          bucketName: bucketName,
+          endpoint: endpoint,
+          region: region,
+          dio: dio,
+          enableLogInterceptor: enableLogInterceptor,
+          interceptors: interceptors,
+          maxConcurrency: maxConcurrency,
+        );
+
   /// 从 JSON 数据创建 OSSConfig 实例
   ///
   /// 这在从配置文件或远程服务加载配置时非常有用。
+  /// 注意：此方法创建的是静态配置，不支持动态刷新。
   ///
   /// 参数：
   /// - [json] 包含配置数据的 Map
   ///
   /// 返回一个新的 [OSSConfig] 实例
   factory OSSConfig.fromJson(Map<String, dynamic> json) {
-    return OSSConfig(
+    return OSSConfig.static(
       accessKeyId: json['accessKeyId'] as String,
       accessKeySecret: json['accessKeySecret'] as String,
       bucketName: json['bucketName'] as String,
@@ -58,16 +106,36 @@ class OSSConfig {
     );
   }
 
-  /// OSS访问密钥ID
+  /// 访问密钥ID获取函数
   ///
-  /// 用于身份验证的AccessKey ID,可从阿里云控制台获取
-  final String accessKeyId;
+  /// 每次需要访问密钥ID时都会调用此函数，支持动态获取最新值
+  final String Function() accessKeyIdProvider;
 
-  /// OSS访问密钥密码
+  /// 访问密钥Secret获取函数
   ///
-  /// 用于身份验证的AccessKey Secret,可从阿里云控制台获取
-  /// 注意：请妥善保管,不要泄露给他人
-  final String accessKeySecret;
+  /// 每次需要访问密钥Secret时都会调用此函数，支持动态获取最新值
+  final String Function() accessKeySecretProvider;
+
+  /// 安全令牌获取函数（可选，用于STS）
+  ///
+  /// 每次需要安全令牌时都会调用此函数，支持动态获取最新值
+  /// 如果为null，表示不使用STS临时凭证
+  final String? Function()? securityTokenProvider;
+
+  /// 当前有效的访问密钥ID
+  ///
+  /// 通过调用accessKeyIdProvider获取最新值
+  String get accessKeyId => accessKeyIdProvider();
+
+  /// 当前有效的访问密钥Secret
+  ///
+  /// 通过调用accessKeySecretProvider获取最新值
+  String get accessKeySecret => accessKeySecretProvider();
+
+  /// 当前有效的安全令牌
+  ///
+  /// 通过调用securityTokenProvider获取最新值，如果provider为null则返回null
+  String? get securityToken => securityTokenProvider?.call();
 
   /// OSS存储空间名称
   ///
@@ -121,12 +189,6 @@ class OSSConfig {
   /// 例如：'cn-hangzhou'、'cn-beijing'等
   final String region;
 
-  /// STS临时安全凭证的安全令牌
-  ///
-  /// 使用STS（Security Token Service）临时授权访问时需要提供
-  /// 如果使用长期密钥访问,此字段为null
-  final String? securityToken;
-
   /// 将配置转换为 JSON 格式
   ///
   /// 这在需要将配置保存到文件或发送到远程服务时非常有用。
@@ -172,7 +234,7 @@ class OSSConfig {
     String region = 'cn-hangzhou',
     String? securityToken,
   }) {
-    return OSSConfig(
+    return OSSConfig.static(
       accessKeyId: accessKeyId,
       accessKeySecret: accessKeySecret,
       bucketName: bucketName,
@@ -186,6 +248,7 @@ class OSSConfig {
   /// 创建当前配置的副本,并可选择性地覆盖某些属性
   ///
   /// 这在需要修改配置的某些部分而保持其他部分不变时非常有用。
+  /// 注意：此方法只适用于静态配置，对于动态配置请重新创建OSSConfig实例。
   ///
   /// 参数：
   /// - [accessKeyId] 新的 AccessKey ID
@@ -211,7 +274,7 @@ class OSSConfig {
     List<Interceptor>? interceptors,
     int? maxConcurrency,
   }) {
-    return OSSConfig(
+    return OSSConfig.static(
       accessKeyId: accessKeyId ?? this.accessKeyId,
       accessKeySecret: accessKeySecret ?? this.accessKeySecret,
       bucketName: bucketName ?? this.bucketName,

@@ -385,12 +385,70 @@ Future<void> _runGenerateSignedUrlExample() async {
   print('--- 示例 7 结束 ---\n');
 }
 
+/// STS令牌管理器示例
+///
+/// 演示如何实现动态STS令牌刷新功能
+class StsTokenManager {
+  String? _accessKeyId;
+  String? _accessKeySecret;
+  String? _securityToken;
+  DateTime? _expireTime;
+
+  /// 获取当前有效的访问密钥ID
+  String get accessKeyId {
+    _refreshIfNeeded();
+    return _accessKeyId!;
+  }
+
+  /// 获取当前有效的访问密钥Secret
+  String get accessKeySecret {
+    _refreshIfNeeded();
+    return _accessKeySecret!;
+  }
+
+  /// 获取当前有效的安全令牌
+  String? get securityToken {
+    _refreshIfNeeded();
+    return _securityToken;
+  }
+
+  /// 检查是否需要刷新令牌，如果需要则自动刷新
+  void _refreshIfNeeded() {
+    if (_expireTime == null ||
+        DateTime.now()
+            .isAfter(_expireTime!.subtract(const Duration(minutes: 5)))) {
+      _refreshStsToken();
+    }
+  }
+
+  /// 刷新STS令牌
+  ///
+  /// 在实际应用中，这里应该调用您的STS服务来获取新的临时凭证
+  void _refreshStsToken() {
+    print('🔄 刷新STS令牌...');
+
+    // 模拟调用STS服务获取新令牌
+    // 在实际应用中，您需要替换为真实的STS API调用
+    _accessKeyId =
+        'STS.mock_access_key_id_${DateTime.now().millisecondsSinceEpoch}';
+    _accessKeySecret =
+        'mock_access_key_secret_${DateTime.now().millisecondsSinceEpoch}';
+    _securityToken =
+        'mock_security_token_${DateTime.now().millisecondsSinceEpoch}';
+    _expireTime = DateTime.now().add(const Duration(hours: 1)); // 假设令牌1小时后过期
+
+    print('✅ STS令牌刷新完成，过期时间: $_expireTime');
+  }
+}
+
 /// 主函数,提供交互式菜单运行示例
 Future<void> main() async {
   // --- 初始化 OSSClient ---
-  // 从配置文件读取配置
+
+  // 方式1：使用静态配置（传统方式）
+  print('📋 初始化OSS客户端...');
   oss = OSSClient.init(
-    const OSSConfig(
+    OSSConfig.static(
       accessKeyId: OssConfig.accessKeyId,
       accessKeySecret: OssConfig.accessKeySecret,
       bucketName: OssConfig.bucket,
@@ -400,6 +458,22 @@ Future<void> main() async {
     // connectTimeout: Duration(seconds: 30), // 可选：连接超时时间
     // receiveTimeout: Duration(minutes: 5), // 可选：接收超时时间
   );
+
+  // 方式2：使用动态STS令牌（推荐用于STS场景）
+  // 取消注释以下代码来使用STS动态刷新功能：
+  /*
+  final stsManager = StsTokenManager();
+  oss = OSSClient.init(
+    OSSConfig(
+      accessKeyIdProvider: () => stsManager.accessKeyId,
+      accessKeySecretProvider: () => stsManager.accessKeySecret,
+      securityTokenProvider: () => stsManager.securityToken,
+      bucketName: OssConfig.bucket,
+      endpoint: OssConfig.endpoint,
+      region: OssConfig.region,
+    ),
+  );
+  */
 
   print('OSS Client 初始化成功:');
   print('  Endpoint: ${oss.config.endpoint}');
