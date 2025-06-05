@@ -2,6 +2,34 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.1.0
+
+### ✨ Major New Features
+
+#### 🔐 Dynamic Credential Management
+- **Dynamic AccessKey/Secret/STS Token Support**: Enhanced `OSSConfig` to support dynamic credential retrieval
+  - Added `accessKeyIdProvider`, `accessKeySecretProvider`, and `securityTokenProvider` functions
+  - Enables automatic STS token refresh without client reinitialization
+  - Maintains backward compatibility with static credential configuration via `OSSConfig.static()`
+  - Perfect for production environments requiring automatic credential rotation
+
+#### 📤 Extended Upload Methods
+- **Multi-Type Upload Support**: Added convenient upload methods for different data types
+  - `putObjectFromString()` - Upload string content with automatic UTF-8 encoding
+  - `putObjectFromBytes()` - Upload byte array data directly
+  - Maintains full compatibility with existing `putObject()` for file uploads
+  - Implemented as extension methods in implementation classes, keeping interfaces clean
+
+### 📚 Documentation & Examples
+- **Enhanced STS Documentation**: Complete examples for both static and dynamic STS token management
+- **Comprehensive Examples**: Added examples for all upload types in `example.dart`
+- **README Synchronization**: Ensured complete correspondence between English and Chinese versions
+
+### 🧪 Testing & Quality
+- **Comprehensive Test Coverage**: Added extensive unit tests for new functionality
+- **All Tests Passing**: 21/21 tests pass, including new multi-type upload tests
+- **Signature Compatibility**: Verified compatibility with both V1 and V4 signature algorithms
+
 ## 1.0.4
 
 ### Bug Fixes

@@ -5,7 +5,10 @@ import 'package:dio/dio.dart';
 
 // 定义回调类型 (如果尚未定义)
 typedef PartProgressCallback = void Function(
-    int partNumber, int count, int total,);
+  int partNumber,
+  int count,
+  int total,
+);
 
 mixin IOSSService {
   // -------------------- 基础操作 Section --------------------
@@ -167,7 +170,7 @@ mixin IOSSService {
   /// - 对于使用 [multipartUpload] 方法的情况,如果上传失败,会自动尝试调用此方法清理资源
   Future<Response<dynamic>> abortMultipartUpload(
     String fileKey,
-    String uploadId, {  
+    String uploadId, {
     OSSRequestParams? params,
   });
 

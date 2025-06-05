@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:async'; // 导入 async 包
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dart_aliyun_oss/dart_aliyun_oss.dart';
 import 'package:dio/dio.dart';
@@ -63,6 +64,74 @@ Future<void> _runSimpleUploadExample() async {
     print('文件上传失败: $e');
   }
   print('--- 示例 1 结束 ---\n');
+}
+
+/// 示例 1.1: 上传字符串内容
+Future<void> _runStringUploadExample() async {
+  print('\n--- 运行示例 1.1: 上传字符串内容 ---');
+  try {
+    final String content = '''
+这是一个通过字符串上传的示例文件。
+支持多行文本内容。
+时间戳: ${DateTime.now()}
+''';
+
+    await oss.putObjectFromString(
+      content,
+      'example/string_upload_test.txt',
+      params: OSSRequestParams(
+        isV1Signature: isV1Signature, // 使用全局签名版本设置
+        onSendProgress: (int count, int total) {
+          // 处理上传进度,用百分比展示
+          if (total > 0) {
+            print('字符串上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+          } else {
+            print('字符串上传进度: $count bytes');
+          }
+        },
+      ),
+    );
+    print('字符串内容上传成功');
+    print('内容长度: ${content.length} 字符');
+  } catch (e) {
+    print('字符串上传失败: $e');
+  }
+  print('--- 示例 1.1 结束 ---\n');
+}
+
+/// 示例 1.2: 上传字节数组
+Future<void> _runBytesUploadExample() async {
+  print('\n--- 运行示例 1.2: 上传字节数组 ---');
+  try {
+    // 创建一个示例字节数组 (模拟二进制数据)
+    final Uint8List bytes = Uint8List.fromList(<int>[
+      // 文件头标识 (模拟PNG文件头)
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+      // 一些示例数据
+      ...List<int>.generate(1024, (int index) => index % 256),
+    ]);
+
+    await oss.putObjectFromBytes(
+      bytes,
+      'example/bytes_upload_test.bin',
+      params: OSSRequestParams(
+        isV1Signature: isV1Signature, // 使用全局签名版本设置
+        onSendProgress: (int count, int total) {
+          // 处理上传进度,用百分比展示
+          if (total > 0) {
+            print('字节数组上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+          } else {
+            print('字节数组上传进度: $count bytes');
+          }
+        },
+      ),
+    );
+    print('字节数组上传成功');
+    print('数据大小: ${bytes.length} 字节');
+  } catch (e) {
+    print('字节数组上传失败: $e');
+  }
+  print('--- 示例 1.2 结束 ---\n');
 }
 
 /// 示例 2: 下载文件
@@ -505,7 +574,9 @@ Future<void> main() async {
   while (true) {
     print('\n请选择要运行的示例:');
     print('  0: 切换签名版本 (当前: $signatureVersionName)');
-    print('  1: 简单上传');
+    print('  1: 文件上传 (File)');
+    print('  1.1: 字符串上传 (String)');
+    print('  1.2: 字节数组上传 (Uint8List)');
     print('  2: 下载文件');
     print('  3: 分片上传 (使用封装方法)');
     print('  4: 列出已上传的分片 (需手动输入)');
@@ -523,6 +594,12 @@ Future<void> main() async {
         break;
       case '1':
         await _runSimpleUploadExample();
+        break;
+      case '1.1':
+        await _runStringUploadExample();
+        break;
+      case '1.2':
+        await _runBytesUploadExample();
         break;
       case '2':
         await _runDownloadExample();

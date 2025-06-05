@@ -1,5 +1,7 @@
 # 阿里云OSS Dart SDK
 
+[English](README.md) | [中文](README_zh.md)
+
 这是一个用于阿里云对象存储服务(OSS)的Dart客户端SDK，提供了简单易用的API来访问阿里云OSS服务。
 
 ## 功能特点
@@ -14,7 +16,7 @@
 
 ```yaml
 dependencies:
-  dart_aliyun_oss: ^1.0.1
+  dart_aliyun_oss: ^1.1.0
 ```
 
 然后运行:
@@ -44,6 +46,10 @@ final oss = OSSClient.init(
 
 ### 简单上传
 
+SDK支持上传不同类型的数据：
+
+#### 上传文件
+
 ```dart
 Future<void> uploadFile() async {
   final file = File('path/to/your/file.txt');
@@ -53,6 +59,54 @@ Future<void> uploadFile() async {
     params: OSSRequestParams(
       onSendProgress: (int count, int total) {
         print('上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
+  );
+}
+```
+
+#### 上传字符串内容
+
+```dart
+Future<void> uploadString() async {
+  const String content = '''
+这是一个通过字符串内容上传的文本文件。
+支持多行文本内容。
+时间戳: 2024-01-01 12:00:00
+''';
+
+  await oss.putObjectFromString(
+    content,
+    'example/text_content.txt',
+    params: OSSRequestParams(
+      onSendProgress: (int count, int total) {
+        print('字符串上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
+  );
+}
+```
+
+#### 上传字节数组
+
+```dart
+import 'dart:typed_data';
+
+Future<void> uploadBytes() async {
+  // 创建示例字节数组（例如，二进制数据）
+  final Uint8List bytes = Uint8List.fromList([
+    // 文件头（模拟PNG文件头）
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+    // 一些示例数据
+    ...List<int>.generate(1024, (index) => index % 256),
+  ]);
+
+  await oss.putObjectFromBytes(
+    bytes,
+    'example/binary_data.bin',
+    params: OSSRequestParams(
+      onSendProgress: (int count, int total) {
+        print('字节数组上传进度: ${(count / total * 100).toStringAsFixed(2)}%');
       },
     ),
   );
@@ -130,9 +184,13 @@ final response = await oss.getObject(
 
 ### 使用STS临时令牌
 
+STS（安全令牌服务）提供临时凭证，用于安全访问OSS资源。本SDK支持静态STS令牌和动态令牌刷新两种方式。
+
+#### 方式1：静态STS令牌
+
 ```dart
-// 使用STS临时令牌初始化客户端
-final OSSConfig configWithSTS = OSSConfig(
+// 使用静态STS临时令牌初始化客户端
+final OSSConfig configWithSTS = OSSConfig.static(
   accessKeyId: 'STS.your-sts-access-key-id',
   accessKeySecret: 'your-sts-access-key-secret',
   securityToken: 'your-sts-security-token', // STS临时安全令牌
@@ -141,10 +199,72 @@ final OSSConfig configWithSTS = OSSConfig(
   region: 'cn-hangzhou',
 );
 
-final OSSClient ossWithSTS = await OSSClient.initialize(configWithSTS);
+final OSSClient ossWithSTS = OSSClient.init(configWithSTS);
 
 // 使用STS临时令牌上传文件
 await ossWithSTS.putObject(
+  File('path/to/file.txt'),
+  'example/file.txt',
+);
+```
+
+#### 方式2：动态STS令牌刷新（推荐）
+
+```dart
+// STS令牌管理器，用于自动刷新令牌
+class StsTokenManager {
+  String? _accessKeyId;
+  String? _accessKeySecret;
+  String? _securityToken;
+  DateTime? _expireTime;
+
+  String get accessKeyId {
+    _refreshIfNeeded();
+    return _accessKeyId!;
+  }
+
+  String get accessKeySecret {
+    _refreshIfNeeded();
+    return _accessKeySecret!;
+  }
+
+  String? get securityToken {
+    _refreshIfNeeded();
+    return _securityToken;
+  }
+
+  void _refreshIfNeeded() {
+    if (_expireTime == null ||
+        DateTime.now().isAfter(_expireTime!.subtract(Duration(minutes: 5)))) {
+      _refreshStsToken();
+    }
+  }
+
+  void _refreshStsToken() {
+    // 调用您的STS服务获取新的临时凭证
+    // 请替换为实际的STS API调用
+    _accessKeyId = 'STS.new_access_key_id';
+    _accessKeySecret = 'new_access_key_secret';
+    _securityToken = 'new_security_token';
+    _expireTime = DateTime.now().add(Duration(hours: 1));
+  }
+}
+
+// 使用动态STS令牌刷新初始化客户端
+final stsManager = StsTokenManager();
+final OSSClient ossWithDynamicSTS = OSSClient.init(
+  OSSConfig(
+    accessKeyIdProvider: () => stsManager.accessKeyId,
+    accessKeySecretProvider: () => stsManager.accessKeySecret,
+    securityTokenProvider: () => stsManager.securityToken,
+    bucketName: 'your-bucket-name',
+    endpoint: 'oss-cn-hangzhou.aliyuncs.com',
+    region: 'cn-hangzhou',
+  ),
+);
+
+// 客户端将自动使用刷新后的令牌进行所有操作
+await ossWithDynamicSTS.putObject(
   File('path/to/file.txt'),
   'example/file.txt',
 );

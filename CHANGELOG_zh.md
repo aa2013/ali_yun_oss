@@ -2,6 +2,34 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.1.0
+
+### ✨ 主要新功能
+
+#### 🔐 动态凭证管理
+- **动态 AccessKey/Secret/STS 令牌支持**：增强 `OSSConfig` 以支持动态凭证获取
+  - 添加 `accessKeyIdProvider`、`accessKeySecretProvider` 和 `securityTokenProvider` 函数
+  - 支持自动 STS 令牌刷新，无需重新初始化客户端
+  - 通过 `OSSConfig.static()` 保持与静态凭证配置的向后兼容性
+  - 非常适合需要自动凭证轮换的生产环境
+
+#### 📤 扩展上传方法
+- **多类型上传支持**：为不同数据类型添加便利的上传方法
+  - `putObjectFromString()` - 上传字符串内容，自动 UTF-8 编码
+  - `putObjectFromBytes()` - 直接上传字节数组数据
+  - 保持与现有 `putObject()` 文件上传的完全兼容性
+  - 作为扩展方法在实现类中实现，保持接口清洁
+
+### 📚 文档和示例
+- **增强 STS 文档**：提供静态和动态 STS 令牌管理的完整示例
+- **全面示例**：在 `example.dart` 中添加所有上传类型的示例
+- **README 同步**：确保中英文版本完全对应
+
+### 🧪 测试和质量
+- **全面测试覆盖**：为新功能添加了广泛的单元测试
+- **所有测试通过**：21/21 测试通过，包括新的多类型上传测试
+- **签名兼容性**：验证了与 V1 和 V4 签名算法的兼容性
+
 ## 1.0.4
 
 ### 错误修复

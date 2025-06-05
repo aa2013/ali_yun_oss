@@ -16,7 +16,7 @@ This is a Dart client SDK for Alibaba Cloud Object Storage Service (OSS), provid
 
 ```yaml
 dependencies:
-  dart_aliyun_oss: ^1.0.1
+  dart_aliyun_oss: ^1.1.0
 ```
 
 Then run:
@@ -46,6 +46,10 @@ final oss = OSSClient.init(
 
 ### Simple Upload
 
+The SDK supports uploading different types of data:
+
+#### Upload File
+
 ```dart
 Future<void> uploadFile() async {
   final file = File('path/to/your/file.txt');
@@ -55,6 +59,54 @@ Future<void> uploadFile() async {
     params: OSSRequestParams(
       onSendProgress: (int count, int total) {
         print('Upload progress: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
+  );
+}
+```
+
+#### Upload String Content
+
+```dart
+Future<void> uploadString() async {
+  const String content = '''
+This is a text file uploaded from string content.
+Supports multi-line text content.
+Timestamp: 2024-01-01 12:00:00
+''';
+
+  await oss.putObjectFromString(
+    content,
+    'example/text_content.txt',
+    params: OSSRequestParams(
+      onSendProgress: (int count, int total) {
+        print('String upload progress: ${(count / total * 100).toStringAsFixed(2)}%');
+      },
+    ),
+  );
+}
+```
+
+#### Upload Byte Array
+
+```dart
+import 'dart:typed_data';
+
+Future<void> uploadBytes() async {
+  // Create sample byte array (e.g., binary data)
+  final Uint8List bytes = Uint8List.fromList([
+    // File header (simulating PNG file header)
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+    // Some sample data
+    ...List<int>.generate(1024, (index) => index % 256),
+  ]);
+
+  await oss.putObjectFromBytes(
+    bytes,
+    'example/binary_data.bin',
+    params: OSSRequestParams(
+      onSendProgress: (int count, int total) {
+        print('Bytes upload progress: ${(count / total * 100).toStringAsFixed(2)}%');
       },
     ),
   );
@@ -132,9 +184,13 @@ final response = await oss.getObject(
 
 ### Using STS Temporary Tokens
 
+STS (Security Token Service) provides temporary credentials for secure access to OSS resources. This SDK supports both static STS tokens and dynamic token refresh.
+
+#### Method 1: Static STS Token
+
 ```dart
-// Initialize client with STS temporary token
-final OSSConfig configWithSTS = OSSConfig(
+// Initialize client with static STS temporary token
+final OSSConfig configWithSTS = OSSConfig.static(
   accessKeyId: 'STS.your-sts-access-key-id',
   accessKeySecret: 'your-sts-access-key-secret',
   securityToken: 'your-sts-security-token', // STS temporary security token
@@ -143,10 +199,72 @@ final OSSConfig configWithSTS = OSSConfig(
   region: 'cn-hangzhou',
 );
 
-final OSSClient ossWithSTS = await OSSClient.initialize(configWithSTS);
+final OSSClient ossWithSTS = OSSClient.init(configWithSTS);
 
 // Upload file using STS temporary token
 await ossWithSTS.putObject(
+  File('path/to/file.txt'),
+  'example/file.txt',
+);
+```
+
+#### Method 2: Dynamic STS Token Refresh (Recommended)
+
+```dart
+// STS Token Manager for automatic token refresh
+class StsTokenManager {
+  String? _accessKeyId;
+  String? _accessKeySecret;
+  String? _securityToken;
+  DateTime? _expireTime;
+
+  String get accessKeyId {
+    _refreshIfNeeded();
+    return _accessKeyId!;
+  }
+
+  String get accessKeySecret {
+    _refreshIfNeeded();
+    return _accessKeySecret!;
+  }
+
+  String? get securityToken {
+    _refreshIfNeeded();
+    return _securityToken;
+  }
+
+  void _refreshIfNeeded() {
+    if (_expireTime == null ||
+        DateTime.now().isAfter(_expireTime!.subtract(Duration(minutes: 5)))) {
+      _refreshStsToken();
+    }
+  }
+
+  void _refreshStsToken() {
+    // Call your STS service to get new temporary credentials
+    // Replace this with actual STS API call
+    _accessKeyId = 'STS.new_access_key_id';
+    _accessKeySecret = 'new_access_key_secret';
+    _securityToken = 'new_security_token';
+    _expireTime = DateTime.now().add(Duration(hours: 1));
+  }
+}
+
+// Initialize client with dynamic STS token refresh
+final stsManager = StsTokenManager();
+final OSSClient ossWithDynamicSTS = OSSClient.init(
+  OSSConfig(
+    accessKeyIdProvider: () => stsManager.accessKeyId,
+    accessKeySecretProvider: () => stsManager.accessKeySecret,
+    securityTokenProvider: () => stsManager.securityToken,
+    bucketName: 'your-bucket-name',
+    endpoint: 'oss-cn-hangzhou.aliyuncs.com',
+    region: 'cn-hangzhou',
+  ),
+);
+
+// The client will automatically use refreshed tokens for all operations
+await ossWithDynamicSTS.putObject(
   File('path/to/file.txt'),
   'example/file.txt',
 );
