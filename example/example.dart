@@ -454,6 +454,104 @@ Future<void> _runGenerateSignedUrlExample() async {
   print('--- 示例 7 结束 ---\n');
 }
 
+/// 示例 8: 生成带自定义查询参数的签名 URL
+///
+/// 演示如何在签名URL中添加自定义查询参数，特别是图片处理参数
+Future<void> _runCustomQueryParamsExample() async {
+  print('\n--- 运行示例 8: 生成带自定义查询参数的$signatureVersionName签名 URL ---');
+
+  // 让用户选择示例类型
+  print('\n请选择自定义查询参数示例类型:');
+  print('  1: 图片处理 - 缩放');
+  print('  2: 图片处理 - 复杂处理');
+  print('  3: 文档下载 - 自定义响应头');
+  print('  4: 视频截帧');
+  print('  5: 自定义参数');
+  stdout.write('请选择 (默认: 1): ');
+
+  final String? typeChoice = stdin.readLineSync();
+
+  String objectKey;
+  Map<String, String> queryParams;
+  String description;
+
+  switch (typeChoice) {
+    case '2':
+      objectKey = 'images/photo.jpg';
+      queryParams = <String, String>{
+        'x-oss-process': 'image/resize,w_200,h_200/quality,q_80/format,webp',
+      };
+      description = '复杂图片处理 (缩放+质量+格式转换)';
+      break;
+    case '3':
+      objectKey = 'documents/report.pdf';
+      queryParams = <String, String>{
+        'response-content-type': 'application/pdf',
+        'response-content-disposition': 'attachment; filename="report.pdf"',
+        'response-cache-control': 'no-cache',
+      };
+      description = '文档下载 (自定义响应头)';
+      break;
+    case '4':
+      objectKey = 'videos/movie.mp4';
+      queryParams = <String, String>{
+        'x-oss-process': 'video/snapshot,t_10000,f_jpg,w_800,h_600',
+      };
+      description = '视频截帧 (10秒处截取800x600的JPG图片)';
+      break;
+    case '5':
+      stdout.write('请输入对象键 (例如: test.jpg): ');
+      objectKey = stdin.readLineSync() ?? 'test.jpg';
+      stdout.write('请输入参数名: ');
+      final String paramName = stdin.readLineSync() ?? 'custom-param';
+      stdout.write('请输入参数值: ');
+      final String paramValue = stdin.readLineSync() ?? 'custom-value';
+      queryParams = <String, String>{paramName: paramValue};
+      description = '自定义参数';
+      break;
+    default:
+      objectKey = 'images/photo.jpg';
+      queryParams = <String, String>{
+        'x-oss-process': 'image/resize,l_100',
+      };
+      description = '图片缩放 (限制长边为100像素)';
+  }
+
+  print('\n正在生成带自定义查询参数的 $signatureVersionName 签名 URL...');
+  print('  对象: $objectKey');
+  print('  描述: $description');
+  print('  查询参数: $queryParams');
+
+  try {
+    final String signedUrl = oss.signedUrl(
+      objectKey,
+      queryParameters: queryParams,
+      isV1Signature: isV1Signature,
+    );
+
+    print('\n生成的 $signatureVersionName 签名 URL (包含自定义查询参数):');
+    print(signedUrl);
+
+    // 解析URL以显示查询参数
+    final Uri uri = Uri.parse(signedUrl);
+    print('\n查询参数详情:');
+    uri.queryParameters.forEach((String key, String value) {
+      if (queryParams.containsKey(key)) {
+        print('  ✅ 自定义参数: $key = $value');
+      } else {
+        print(
+          '  🔐 签名参数: $key = ${value.length > 20 ? '${value.substring(0, 20)}...' : value}',
+        );
+      }
+    });
+
+    print('\n💡 提示: 此URL可以直接在浏览器中访问，OSS会根据查询参数处理文件');
+  } catch (e) {
+    print('生成带自定义查询参数的 $signatureVersionName 签名 URL 失败: $e');
+  }
+  print('--- 示例 8 结束 ---\n');
+}
+
 /// STS令牌管理器示例
 ///
 /// 演示如何实现动态STS令牌刷新功能
@@ -583,6 +681,7 @@ Future<void> main() async {
     print('  5: 列出所有进行中的分片上传');
     print('  6: 中止分片上传 (需手动输入)');
     print('  7: 生成签名 URL');
+    print('  8: 生成带自定义查询参数的签名 URL');
     print('  q: 退出');
     stdout.write('请输入选项: ');
 
@@ -618,6 +717,9 @@ Future<void> main() async {
         break;
       case '7':
         await _runGenerateSignedUrlExample();
+        break;
+      case '8':
+        await _runCustomQueryParamsExample();
         break;
       case 'q':
       case 'Q':

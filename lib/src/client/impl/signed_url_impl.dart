@@ -53,6 +53,7 @@ mixin SignedUrlImpl on IOSSService {
   /// - [additionalHeaders] 需要参与签名的额外头名称集合（仅 V4 签名使用）
   /// - [dateTime] 用于签名的时间,如果不提供则使用当前时间
   /// - [isV1Signature] 是否使用 V1 签名算法,默认为 true（使用 V1 签名）
+  /// - [queryParameters] 自定义查询参数, 如图片处理参数等, 将参与签名计算
   ///
   /// 返回包含签名的完整 URL 字符串
   ///
@@ -61,6 +62,22 @@ mixin SignedUrlImpl on IOSSService {
   /// - 使用 STS 临时凭证时,URL 有效期不能超过 STS 凭证的有效期
   /// - 生成的 URL 可以直接在浏览器中访问,也可以在 HTTP 客户端中使用
   /// - 对于上传操作（PUT/POST）,需要确保请求的 Content-Type 与签名时一致
+  /// - 自定义查询参数不能与OSS保留参数冲突
+  ///
+  /// 示例：
+  /// ```dart
+  /// // 基础用法
+  /// final url = client.signedUrl('example.txt');
+  ///
+  /// // 带图片处理参数的用法
+  /// final imageUrl = client.signedUrl(
+  ///   'image.jpg',
+  ///   queryParameters: {
+  ///     'x-oss-process': 'image/resize,l_100',
+  ///   },
+  ///   isV1Signature: false, // 推荐使用V4签名
+  /// );
+  /// ```
   String signedUrl(
     String fileKey, {
     String method = 'GET',
@@ -70,6 +87,7 @@ mixin SignedUrlImpl on IOSSService {
     Set<String>? additionalHeaders,
     DateTime? dateTime,
     bool isV1Signature = true,
+    Map<String, String>? queryParameters,
   }) {
     // 验证必要参数
     if (fileKey.isEmpty) {
@@ -104,6 +122,7 @@ mixin SignedUrlImpl on IOSSService {
         ossHeaders: headers,
         securityToken: securityToken,
         dateTime: dateTime,
+        queryParameters: queryParameters,
       );
       return uri.toString();
     } else {
@@ -127,6 +146,7 @@ mixin SignedUrlImpl on IOSSService {
         additionalHeaders: additionalHeaders,
         securityToken: securityToken,
         dateTime: dateTime,
+        queryParameters: queryParameters,
       );
       return uri.toString();
     }

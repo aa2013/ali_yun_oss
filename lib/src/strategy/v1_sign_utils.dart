@@ -371,11 +371,13 @@ class AliOssV1SignUtils {
   /// - [contentType] 请求体的Content-Type（可选）
   /// - [securityToken] 安全令牌（STS临时凭证需要）
   /// - [dateTime] 指定请求时间（可选，默认为当前时间）
+  /// - [queryParameters] 自定义查询参数, 如图片处理参数等, 将参与签名计算
   ///
   /// 返回包含签名的完整URL（Uri对象）
   ///
   /// 示例：
   /// ```dart
+  /// // 基础用法
   /// final uri = AliOssV1SignUtils.signatureUri(
   ///   accessKeyId: 'your-access-key-id',
   ///   accessKeySecret: 'your-access-key-secret',
@@ -384,6 +386,19 @@ class AliOssV1SignUtils {
   ///   bucket: 'example-bucket',
   ///   key: 'example.txt',
   ///   expires: 3600, // 1小时后过期
+  /// );
+  ///
+  /// // 带图片处理参数的用法
+  /// final imageUri = AliOssV1SignUtils.signatureUri(
+  ///   accessKeyId: 'your-access-key-id',
+  ///   accessKeySecret: 'your-access-key-secret',
+  ///   endpoint: 'oss-cn-hangzhou.aliyuncs.com',
+  ///   method: 'GET',
+  ///   bucket: 'example-bucket',
+  ///   key: 'image.jpg',
+  ///   queryParameters: {
+  ///     'x-oss-process': 'image/resize,l_100',
+  ///   },
   /// );
   ///
   /// // 使用生成的URL访问OSS资源
@@ -402,6 +417,7 @@ class AliOssV1SignUtils {
     String? contentType,
     String? securityToken,
     DateTime? dateTime,
+    Map<String, String>? queryParameters,
   }) {
     // 1. 处理时间参数
     final DateTime now = dateTime ?? DateTime.now().toUtc();
@@ -431,11 +447,21 @@ class AliOssV1SignUtils {
     final String signature = _calculateSignature(accessKeySecret, stringToSign);
 
     // 6. 构建查询参数
-    final Map<String, String> queryParams = <String, String>{
+    final Map<String, String> queryParams = <String, String>{};
+
+    // 6.1 首先添加自定义查询参数（如果有）
+    if (queryParameters != null && queryParameters.isNotEmpty) {
+      // 验证自定义参数不与OSS保留参数冲突
+      _validateCustomQueryParameters(queryParameters);
+      queryParams.addAll(queryParameters);
+    }
+
+    // 6.2 添加OSS签名相关的查询参数
+    queryParams.addAll(<String, String>{
       'OSSAccessKeyId': accessKeyId,
       'Expires': expiresTimestamp.toString(),
       'Signature': signature,
-    };
+    });
 
     // 7. 添加安全令牌（如果有）
     if (securityToken != null) {
@@ -463,5 +489,34 @@ class AliOssV1SignUtils {
     );
 
     return uri;
+  }
+
+  /// 验证自定义查询参数
+  ///
+  /// 检查自定义查询参数是否与OSS保留参数冲突
+  ///
+  /// 参数：
+  /// - [queryParameters] 自定义查询参数映射
+  ///
+  /// 如果发现冲突参数，将抛出 [ArgumentError]
+  static void _validateCustomQueryParameters(
+    Map<String, String> queryParameters,
+  ) {
+    // OSS V1签名保留的查询参数
+    const Set<String> reservedParams = <String>{
+      'ossaccesskeyid',
+      'expires',
+      'signature',
+      'security-token',
+    };
+
+    // 检查是否有冲突的参数
+    for (final String key in queryParameters.keys) {
+      if (reservedParams.contains(key.toLowerCase())) {
+        throw ArgumentError(
+          '自定义查询参数 "$key" 与OSS保留参数冲突，请使用其他参数名',
+        );
+      }
+    }
   }
 }

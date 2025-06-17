@@ -527,6 +527,38 @@ class AliOssV4SignUtils {
     return Hmac(sha256, key).convert(utf8.encode(message)).bytes;
   }
 
+  /// 验证自定义查询参数
+  ///
+  /// 检查自定义查询参数是否与OSS保留参数冲突
+  ///
+  /// 参数：
+  /// - [queryParameters] 自定义查询参数映射
+  ///
+  /// 如果发现冲突参数，将抛出 [ArgumentError]
+  static void _validateCustomQueryParameters(
+    Map<String, String> queryParameters,
+  ) {
+    // OSS V4签名保留的查询参数
+    const Set<String> reservedParams = <String>{
+      'x-oss-credential',
+      'x-oss-date',
+      'x-oss-expires',
+      'x-oss-signature-version',
+      'x-oss-additional-headers',
+      'x-oss-security-token',
+      'x-oss-signature',
+    };
+
+    // 检查是否有冲突的参数
+    for (final String key in queryParameters.keys) {
+      if (reservedParams.contains(key.toLowerCase())) {
+        throw ArgumentError(
+          '自定义查询参数 "$key" 与OSS保留参数冲突，请使用其他参数名',
+        );
+      }
+    }
+  }
+
   /// 生成包含签名的URL
   ///
   /// 根据提供的参数生成包含阿里云OSS V4签名的URL。
@@ -545,12 +577,14 @@ class AliOssV4SignUtils {
   /// - [additionalHeaders] 需要参与签名的额外头名称集合, 默认为空集合
   /// - [securityToken] 安全令牌（STS临时凭证需要）
   /// - [dateTime] 指定请求时间（可选, 默认为当前时间）
+  /// - [queryParameters] 自定义查询参数, 如图片处理参数等, 将参与签名计算
   ///
   /// 返回包含签名的完整URL
   ///
   /// 示例：
   /// ```dart
-  /// final url = AliOssV4SignUtils.signatureUrl(
+  /// // 基础用法
+  /// final url = AliOssV4SignUtils.signatureUri(
   ///   accessKeyId: 'your-access-key-id',
   ///   accessKeySecret: 'your-access-key-secret',
   ///   endpoint: 'oss-cn-hangzhou.aliyuncs.com',
@@ -558,6 +592,20 @@ class AliOssV4SignUtils {
   ///   method: 'GET',
   ///   bucket: 'example-bucket',
   ///   key: 'example.txt',
+  /// );
+  ///
+  /// // 带图片处理参数的用法
+  /// final imageUrl = AliOssV4SignUtils.signatureUri(
+  ///   accessKeyId: 'your-access-key-id',
+  ///   accessKeySecret: 'your-access-key-secret',
+  ///   endpoint: 'oss-cn-hangzhou.aliyuncs.com',
+  ///   region: 'cn-hangzhou',
+  ///   method: 'GET',
+  ///   bucket: 'example-bucket',
+  ///   key: 'image.jpg',
+  ///   queryParameters: {
+  ///     'x-oss-process': 'image/resize,l_100',
+  ///   },
   /// );
   /// ```
   static Uri signatureUri({
@@ -573,6 +621,7 @@ class AliOssV4SignUtils {
     Set<String>? additionalHeaders,
     String? securityToken,
     DateTime? dateTime,
+    Map<String, String>? queryParameters,
   }) {
     // 1. 验证参数
     if (bucket.isEmpty) {
@@ -610,13 +659,23 @@ class AliOssV4SignUtils {
     headers['host'] = host; // 确保 host 头部存在
 
     // 6. 构建查询参数
-    final Map<String, String> queryParams = <String, String>{
+    final Map<String, String> queryParams = <String, String>{};
+
+    // 6.1 首先添加自定义查询参数（如果有）
+    if (queryParameters != null && queryParameters.isNotEmpty) {
+      // 验证自定义参数不与OSS保留参数冲突
+      _validateCustomQueryParameters(queryParameters);
+      queryParams.addAll(queryParameters);
+    }
+
+    // 6.2 添加OSS签名相关的查询参数
+    queryParams.addAll(<String, String>{
       'x-oss-credential':
           '$accessKeyId/$signDate/$region/oss/aliyun_v4_request',
       'x-oss-date': signTime,
       'x-oss-expires': expires.toString(),
       'x-oss-signature-version': 'OSS4-HMAC-SHA256',
-    };
+    });
 
     // 添加额外头部参数（如果有）
     additionalHeaders ??= <String>{'host'};
