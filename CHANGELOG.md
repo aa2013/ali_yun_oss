@@ -2,6 +2,63 @@
 
 [English](CHANGELOG.md) | [中文](CHANGELOG_zh.md)
 
+## 1.2.0
+
+### ✨ Major New Features
+
+#### 🌐 Custom Domain (CNAME) Support
+- **Enterprise-Grade Domain Customization**: Full support for custom domain names (CNAME) configuration
+  - Added `cname` parameter to `OSSConfig` class for seamless custom domain integration
+  - Enhanced `buildOssUri` method to automatically select appropriate domain format
+  - Complete V1 and V4 signature algorithm support for custom domains
+  - Signed URL generation fully compatible with custom domain configurations
+  - Resolves **GitHub Issue #3**: 【功能请求】支持一下自定义域名
+
+#### 🔧 Advanced Query Parameters Support
+- **Flexible URL Query Parameter Handling**: Enhanced V4 signature URLs with custom query parameter support
+  - Added `queryParameters` support for image processing and other advanced OSS features
+  - Example: `?x-oss-process=image/resize,l_100` for image transformation
+  - Built-in parameter conflict detection to prevent OSS reserved parameter conflicts
+  - Maintained API consistency by adding equivalent functionality to V1 signatures
+  - Comprehensive validation and error handling for parameter safety
+  - Resolves **GitHub Issue #5**: 【功能请求】url请求的v4签名增加自定义queryParams
+
+### 🛠️ Technical Implementation
+
+#### Custom Domain Architecture
+- **Backward Compatible Design**: Default `cname=false` preserves existing behavior
+- **Flexible URI Construction**: Smart domain selection based on configuration
+- **Complete Signature Support**: Both V1 and V4 algorithms handle custom domains seamlessly
+- **Enterprise Ready**: Perfect for brand consistency and corporate requirements
+
+#### Query Parameters Enhancement
+- **Type-Safe Parameter Handling**: Robust validation prevents configuration conflicts
+- **Comprehensive Testing**: Full test coverage for all parameter combinations
+- **Developer-Friendly API**: Intuitive parameter passing with clear error messages
+- **Performance Optimized**: Efficient parameter processing without overhead
+
+### 📚 Documentation & Examples
+- **Complete CNAME Documentation**: Detailed setup guides in both English and Chinese README
+- **Dedicated Example Programs**:
+  - `example/cname_demo.dart` - Complete CNAME functionality demonstration
+  - `example/query_params_example.dart` - Advanced query parameter usage examples
+- **Integrated Main Examples**: Enhanced `example/example.dart` with new feature demonstrations
+- **Comprehensive Code Comments**: Detailed inline documentation for all new features
+
+### 🧪 Testing & Quality Assurance
+- **Extensive Test Coverage**:
+  - `test/cname_test.dart` - Complete CNAME functionality testing
+  - `test/query_params_test.dart` - Comprehensive query parameter validation
+- **Backward Compatibility Verified**: All existing functionality remains unchanged
+- **Cross-Platform Testing**: Validated on multiple Dart/Flutter environments
+- **Performance Benchmarking**: Ensured no performance regression with new features
+
+### 🔄 Migration & Compatibility
+- **Zero Breaking Changes**: Existing code continues to work without modifications
+- **Optional Feature Adoption**: New features are opt-in, maintaining stability
+- **Clear Upgrade Path**: Simple configuration changes to enable new capabilities
+- **Production Ready**: Thoroughly tested for enterprise deployment scenarios
+
 ## 1.1.0
 
 ### ✨ Major New Features
