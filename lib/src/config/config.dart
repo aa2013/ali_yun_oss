@@ -24,8 +24,9 @@ class OSSConfig {
   /// - [accessKeySecretProvider] 访问密钥Secret获取函数
   /// - [securityTokenProvider] 安全令牌获取函数（可选，用于STS）
   /// - [bucketName] OSS存储空间名称
-  /// - [endpoint] OSS服务的访问域名
+  /// - [endpoint] OSS服务的访问域名或自定义域名
   /// - [region] OSS服务的地域
+  /// - [cname] 是否启用自定义域名（CNAME），默认为false
   /// - [dio] 可选的自定义Dio实例
   /// - [enableLogInterceptor] 是否启用日志拦截器,默认为true
   /// - [interceptors] 可选的自定义拦截器列表
@@ -37,6 +38,7 @@ class OSSConfig {
     required this.bucketName,
     required this.endpoint,
     required this.region,
+    this.cname = false,
     this.dio,
     this.enableLogInterceptor = true,
     this.interceptors,
@@ -53,8 +55,9 @@ class OSSConfig {
   /// - [accessKeySecret] OSS访问密钥密码
   /// - [securityToken] STS临时安全凭证的安全令牌（可选）
   /// - [bucketName] OSS存储空间名称
-  /// - [endpoint] OSS服务的访问域名
+  /// - [endpoint] OSS服务的访问域名或自定义域名
   /// - [region] OSS服务的地域
+  /// - [cname] 是否启用自定义域名（CNAME），默认为false
   /// - [dio] 可选的自定义Dio实例
   /// - [enableLogInterceptor] 是否启用日志拦截器,默认为true
   /// - [interceptors] 可选的自定义拦截器列表
@@ -66,6 +69,7 @@ class OSSConfig {
     required String bucketName,
     required String endpoint,
     required String region,
+    bool cname = false,
     Dio? dio,
     bool enableLogInterceptor = true,
     List<Interceptor>? interceptors,
@@ -78,6 +82,7 @@ class OSSConfig {
           bucketName: bucketName,
           endpoint: endpoint,
           region: region,
+          cname: cname,
           dio: dio,
           enableLogInterceptor: enableLogInterceptor,
           interceptors: interceptors,
@@ -101,6 +106,7 @@ class OSSConfig {
       endpoint: json['endpoint'] as String,
       region: json['region'] as String,
       securityToken: json['securityToken'] as String?,
+      cname: json['cname'] as bool? ?? false,
       enableLogInterceptor: json['enableLogInterceptor'] as bool? ?? true,
       maxConcurrency: json['maxConcurrency'] as int? ?? 5,
     );
@@ -159,7 +165,22 @@ class OSSConfig {
   /// 完整的Endpoint地址,例如：
   /// - 公网：'oss-cn-hangzhou.aliyuncs.com'
   /// - VPC网络：'oss-cn-hangzhou-internal.aliyuncs.com'
+  /// - 自定义域名：'img.example.com'（需要设置cname=true）
   final String endpoint;
+
+  /// 是否启用自定义域名（CNAME）
+  ///
+  /// 当设置为true时，endpoint将被视为自定义域名，直接用于构建请求URL。
+  /// 当设置为false时（默认），endpoint将与bucketName组合构建标准OSS域名。
+  ///
+  /// 使用自定义域名的前提条件：
+  /// - 已在阿里云OSS控制台绑定自定义域名到指定Bucket
+  /// - 已添加CNAME记录将自定义域名指向OSS域名
+  ///
+  /// 注意事项：
+  /// - 使用自定义域名时，无法使用listBuckets等Bucket级别的操作
+  /// - 自定义域名已绑定到特定Bucket，因此只能访问该Bucket的资源
+  final bool cname;
 
   /// 自定义的请求拦截器列表
   ///
@@ -201,6 +222,7 @@ class OSSConfig {
       'bucketName': bucketName,
       'endpoint': endpoint,
       'region': region,
+      'cname': cname,
       'enableLogInterceptor': enableLogInterceptor,
       'maxConcurrency': maxConcurrency,
     };
@@ -224,6 +246,7 @@ class OSSConfig {
   /// - [bucketName] 可选的存储空间名称,默认为 'test-bucket'
   /// - [endpoint] 可选的端点,默认为 'oss-cn-hangzhou.aliyuncs.com'
   /// - [region] 可选的区域,默认为 'cn-hangzhou'
+  /// - [cname] 是否启用自定义域名,默认为 false
   ///
   /// 返回一个新的 [OSSConfig] 实例,包含默认值或提供的值
   static OSSConfig forTest({
@@ -233,6 +256,7 @@ class OSSConfig {
     String endpoint = 'oss-cn-hangzhou.aliyuncs.com',
     String region = 'cn-hangzhou',
     String? securityToken,
+    bool cname = false,
   }) {
     return OSSConfig.static(
       accessKeyId: accessKeyId,
@@ -241,6 +265,7 @@ class OSSConfig {
       endpoint: endpoint,
       region: region,
       securityToken: securityToken,
+      cname: cname,
       maxConcurrency: 3,
     );
   }
@@ -256,6 +281,7 @@ class OSSConfig {
   /// - [bucketName] 新的存储空间名称
   /// - [endpoint] 新的端点
   /// - [region] 新的区域
+  /// - [cname] 是否启用自定义域名
   /// - [dio] 新的 Dio 实例
   /// - [enableLogInterceptor] 是否启用日志拦截器
   /// - [interceptors] 新的拦截器列表
@@ -269,6 +295,7 @@ class OSSConfig {
     String? endpoint,
     String? region,
     String? securityToken,
+    bool? cname,
     Dio? dio,
     bool? enableLogInterceptor,
     List<Interceptor>? interceptors,
@@ -281,6 +308,7 @@ class OSSConfig {
       endpoint: endpoint ?? this.endpoint,
       region: region ?? this.region,
       securityToken: securityToken ?? this.securityToken,
+      cname: cname ?? this.cname,
       dio: dio ?? this.dio,
       enableLogInterceptor: enableLogInterceptor ?? this.enableLogInterceptor,
       interceptors: interceptors ?? this.interceptors,
@@ -299,6 +327,7 @@ class OSSConfig {
         'bucketName: $bucketName, '
         'endpoint: $endpoint, '
         'region: $region, '
+        'cname: $cname, '
         '$securityTokenStr'
         'enableLogInterceptor: $enableLogInterceptor, '
         'maxConcurrency: $maxConcurrency)';
@@ -316,6 +345,7 @@ class OSSConfig {
         other.bucketName == bucketName &&
         other.endpoint == endpoint &&
         other.region == region &&
+        other.cname == cname &&
         other.securityToken == securityToken &&
         other.enableLogInterceptor == enableLogInterceptor &&
         other.maxConcurrency == maxConcurrency;
@@ -330,6 +360,7 @@ class OSSConfig {
       bucketName,
       endpoint,
       region,
+      cname,
       securityToken,
       enableLogInterceptor,
       maxConcurrency,

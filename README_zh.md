@@ -44,6 +44,29 @@ final oss = OSSClient.init(
 );
 ```
 
+### 使用自定义域名（CNAME）
+
+如果您已经将自定义域名绑定到OSS存储空间，可以使用自定义域名代替默认的OSS端点：
+
+```dart
+// 使用自定义域名初始化OSS客户端
+final oss = OSSClient.init(
+  OSSConfig.static(
+    endpoint: 'img.example.com', // 您的自定义域名
+    region: 'cn-hangzhou',
+    accessKeyId: 'your-access-key-id',
+    accessKeySecret: 'your-access-key-secret',
+    bucketName: 'your-bucket-name',
+    cname: true, // 启用自定义域名
+  ),
+);
+```
+
+**使用自定义域名的前提条件：**
+- 必须在阿里云控制台中将自定义域名绑定到OSS存储空间
+- 必须添加CNAME记录将自定义域名指向OSS端点
+- 使用自定义域名时，无法使用存储空间级别的操作（如`listBuckets`）
+
 ### 简单上传
 
 SDK支持上传不同类型的数据：

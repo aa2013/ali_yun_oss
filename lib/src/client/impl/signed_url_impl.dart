@@ -107,6 +107,7 @@ mixin SignedUrlImpl on IOSSService {
     final String accessKeySecret = client.config.accessKeySecret;
     final String endpoint = client.config.endpoint;
     final String? securityToken = client.config.securityToken;
+    final bool cname = client.config.cname;
 
     // 根据签名算法选择不同的实现
     if (isV1Signature) {
@@ -119,6 +120,7 @@ mixin SignedUrlImpl on IOSSService {
         bucket: bucket,
         key: fileKey,
         expires: expires,
+        cname: cname,
         ossHeaders: headers,
         securityToken: securityToken,
         dateTime: dateTime,
@@ -142,6 +144,7 @@ mixin SignedUrlImpl on IOSSService {
         bucket: bucket,
         key: fileKey,
         expires: expires,
+        cname: cname,
         headers: headers,
         additionalHeaders: additionalHeaders,
         securityToken: securityToken,

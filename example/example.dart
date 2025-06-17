@@ -642,6 +642,21 @@ Future<void> main() async {
   );
   */
 
+  // 方式3：使用自定义域名（CNAME）
+  // 取消注释以下代码来使用自定义域名：
+  /*
+  oss = OSSClient.init(
+    OSSConfig.static(
+      accessKeyId: OssConfig.accessKeyId,
+      accessKeySecret: OssConfig.accessKeySecret,
+      bucketName: OssConfig.bucket,
+      endpoint: 'img.example.com', // 使用自定义域名
+      region: OssConfig.region,
+      cname: true, // 启用自定义域名
+    ),
+  );
+  */
+
   print('OSS Client 初始化成功:');
   print('  Endpoint: ${oss.config.endpoint}');
   print('  Bucket: ${oss.config.bucketName}');
@@ -682,6 +697,7 @@ Future<void> main() async {
     print('  6: 中止分片上传 (需手动输入)');
     print('  7: 生成签名 URL');
     print('  8: 生成带自定义查询参数的签名 URL');
+    print('  9: 自定义域名(CNAME)功能演示');
     print('  q: 退出');
     stdout.write('请输入选项: ');
 
@@ -721,6 +737,9 @@ Future<void> main() async {
       case '8':
         await _runCustomQueryParamsExample();
         break;
+      case '9':
+        await _runCnameDemo();
+        break;
       case 'q':
       case 'Q':
         print('退出程序。');
@@ -732,4 +751,30 @@ Future<void> main() async {
     // 添加短暂延迟,避免连续输出导致混乱
     await Future<void>.delayed(const Duration(milliseconds: 500));
   }
+}
+
+/// 运行自定义域名(CNAME)功能演示
+Future<void> _runCnameDemo() async {
+  print('\n--- 运行示例 9: 自定义域名(CNAME)功能演示 ---');
+
+  try {
+    // 运行CNAME演示脚本
+    final ProcessResult result = await Process.run(
+      'dart',
+      ['run', 'example/cname_demo.dart'],
+      workingDirectory: Directory.current.path,
+    );
+
+    if (result.exitCode == 0) {
+      print(result.stdout);
+    } else {
+      print('演示运行失败:');
+      print('stdout: ${result.stdout}');
+      print('stderr: ${result.stderr}');
+    }
+  } catch (e) {
+    print('运行CNAME演示时出错: $e');
+  }
+
+  print('--- 示例 9 结束 ---');
 }

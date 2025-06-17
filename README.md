@@ -44,6 +44,29 @@ final oss = OSSClient.init(
 );
 ```
 
+### Using Custom Domain (CNAME)
+
+If you have bound a custom domain to your OSS bucket, you can use it instead of the default OSS endpoint:
+
+```dart
+// Initialize OSS client with custom domain
+final oss = OSSClient.init(
+  OSSConfig.static(
+    endpoint: 'img.example.com', // Your custom domain
+    region: 'cn-hangzhou',
+    accessKeyId: 'your-access-key-id',
+    accessKeySecret: 'your-access-key-secret',
+    bucketName: 'your-bucket-name',
+    cname: true, // Enable custom domain
+  ),
+);
+```
+
+**Prerequisites for using custom domain:**
+- You must have bound your custom domain to the OSS bucket in the Alibaba Cloud console
+- You must have added a CNAME record pointing your custom domain to the OSS endpoint
+- When using custom domain, bucket-level operations (like `listBuckets`) are not available
+
 ### Simple Upload
 
 The SDK supports uploading different types of data:

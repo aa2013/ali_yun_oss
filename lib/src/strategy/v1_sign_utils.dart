@@ -348,6 +348,7 @@ class AliOssV1SignUtils {
   /// 根据提供的参数生成包含阿里云OSS V1签名的URL。
   /// 该方法将签名信息作为URL的查询参数，可以直接用于访问OSS资源。
   /// 生成的URL格式为：`https://{bucket}.{endpoint}/{key}?OSSAccessKeyId={accessKeyId}&Expires={expires}&Signature={signature}`
+  /// 或自定义域名格式：`https://{endpoint}/{key}?OSSAccessKeyId={accessKeyId}&Expires={expires}&Signature={signature}`
   ///
   /// 签名过程：
   /// 1. 处理时间参数并计算过期时间戳
@@ -361,11 +362,12 @@ class AliOssV1SignUtils {
   /// 参数：
   /// - [accessKeyId] 阿里云访问密钥ID
   /// - [accessKeySecret] 阿里云访问密钥
-  /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）
+  /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）或自定义域名
   /// - [method] HTTP方法（大写，如：GET/PUT/POST/DELETE）
   /// - [bucket] OSS存储空间名称
   /// - [key] 对象键（文件路径）
   /// - [expires] 签名过期时间（秒），默认3600秒（1小时）
+  /// - [cname] 是否使用自定义域名，默认为false
   /// - [ossHeaders] 参与签名计算的自定义OSS头（可选）
   /// - [contentMd5] 请求体的MD5值（可选）
   /// - [contentType] 请求体的Content-Type（可选）
@@ -386,6 +388,17 @@ class AliOssV1SignUtils {
   ///   bucket: 'example-bucket',
   ///   key: 'example.txt',
   ///   expires: 3600, // 1小时后过期
+  /// );
+  ///
+  /// // 自定义域名用法
+  /// final customUri = AliOssV1SignUtils.signatureUri(
+  ///   accessKeyId: 'your-access-key-id',
+  ///   accessKeySecret: 'your-access-key-secret',
+  ///   endpoint: 'img.example.com',
+  ///   method: 'GET',
+  ///   bucket: 'example-bucket',
+  ///   key: 'example.txt',
+  ///   cname: true, // 启用自定义域名
   /// );
   ///
   /// // 带图片处理参数的用法
@@ -412,6 +425,7 @@ class AliOssV1SignUtils {
     required String bucket,
     required String key,
     int expires = 3600,
+    bool cname = false,
     Map<String, dynamic>? ossHeaders,
     String? contentMd5,
     String? contentType,
@@ -424,7 +438,8 @@ class AliOssV1SignUtils {
     final int expiresTimestamp = (now.millisecondsSinceEpoch ~/ 1000) + expires;
 
     // 2. 构建基础URL
-    final String host = '$bucket.$endpoint';
+    // 根据是否启用CNAME选择不同的域名构造方式
+    final String host = cname ? endpoint : '$bucket.$endpoint';
     final String path = '/$key';
 
     // 3. 构建规范资源路径

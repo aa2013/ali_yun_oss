@@ -360,8 +360,13 @@ class OSSClient
       });
     }
 
+    // 根据是否启用CNAME选择不同的域名构造方式
+    final String hostName = config.cname
+        ? config.endpoint // 使用自定义域名
+        : '$bucketName.${config.endpoint}'; // 使用标准OSS域名格式
+
     return Uri.https(
-      '$bucketName.${config.endpoint}',
+      hostName,
       fileKey,
       stringQueryParams,
     );

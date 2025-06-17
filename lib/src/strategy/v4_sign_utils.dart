@@ -95,6 +95,7 @@ class AliOssV4SignUtils {
     required String key,
     required Uri uri,
     required Map<String, dynamic> headers,
+    bool cname = false,
     Set<String> additionalHeaders = const <String>{},
     String? securityToken,
     DateTime? dateTime,
@@ -189,13 +190,14 @@ class AliOssV4SignUtils {
   /// 参数：
   /// - [accessKeyId] 阿里云访问密钥ID
   /// - [accessKeySecret] 阿里云访问密钥
-  /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）
+  /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）或自定义域名
   /// - [region] 区域代码（如：cn-hangzhou）
   /// - [method] HTTP方法（大写, 如：PUT/GET）
   /// - [bucket] OSS存储空间名称
   /// - [key] 对象键（文件路径）
   /// - [uri] 完整的请求URI
   /// - [headers] 原始请求头集合, 将被扩展并签名
+  /// - [cname] 是否使用自定义域名，默认为false
   /// - [additionalHeaders] 需要参与签名的额外头名称集合, 默认为空集合
   /// - [securityToken] 安全令牌（STS临时凭证需要）
   /// - [dateTime] 指定请求时间（可选, 默认为当前时间）
@@ -235,6 +237,7 @@ class AliOssV4SignUtils {
     required String key,
     required Uri uri,
     required Map<String, dynamic> headers,
+    bool cname = false,
     Set<String> additionalHeaders = const <String>{},
     String? securityToken,
     DateTime? dateTime,
@@ -248,7 +251,8 @@ class AliOssV4SignUtils {
 
     // 2. 更新标准请求头
     result['x-oss-date'] = signTime;
-    result['Host'] = '$bucket.$endpoint';
+    // 根据是否启用CNAME选择不同的Host头构造方式
+    result['Host'] = cname ? endpoint : '$bucket.$endpoint';
     result['x-oss-content-sha256'] = 'UNSIGNED-PAYLOAD';
     result['Date'] = HttpDate.format(now);
 
@@ -268,6 +272,7 @@ class AliOssV4SignUtils {
       key: key,
       uri: uri,
       headers: result,
+      cname: cname,
       additionalHeaders: additionalHeaders,
       securityToken: securityToken,
       dateTime: now,
@@ -567,12 +572,13 @@ class AliOssV4SignUtils {
   /// 参数：
   /// - [accessKeyId] 阿里云访问密钥ID
   /// - [accessKeySecret] 阿里云访问密钥
-  /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）
+  /// - [endpoint] 阿里云OSS端点（如：oss-cn-hangzhou.aliyuncs.com）或自定义域名
   /// - [region] 区域代码（如：cn-hangzhou）
   /// - [method] HTTP方法（大写, 如：PUT/GET）
   /// - [bucket] OSS存储空间名称
   /// - [key] 对象键（文件路径）
   /// - [expires] 签名过期时间（秒）, 默认3600秒
+  /// - [cname] 是否使用自定义域名，默认为false
   /// - [headers] 请求头集合, 将被用于签名计算
   /// - [additionalHeaders] 需要参与签名的额外头名称集合, 默认为空集合
   /// - [securityToken] 安全令牌（STS临时凭证需要）
@@ -592,6 +598,18 @@ class AliOssV4SignUtils {
   ///   method: 'GET',
   ///   bucket: 'example-bucket',
   ///   key: 'example.txt',
+  /// );
+  ///
+  /// // 自定义域名用法
+  /// final customUrl = AliOssV4SignUtils.signatureUri(
+  ///   accessKeyId: 'your-access-key-id',
+  ///   accessKeySecret: 'your-access-key-secret',
+  ///   endpoint: 'img.example.com',
+  ///   region: 'cn-hangzhou',
+  ///   method: 'GET',
+  ///   bucket: 'example-bucket',
+  ///   key: 'example.txt',
+  ///   cname: true, // 启用自定义域名
   /// );
   ///
   /// // 带图片处理参数的用法
@@ -617,6 +635,7 @@ class AliOssV4SignUtils {
     required String bucket,
     required String key,
     int expires = 3600,
+    bool cname = false,
     Map<String, dynamic>? headers,
     Set<String>? additionalHeaders,
     String? securityToken,
@@ -646,7 +665,8 @@ class AliOssV4SignUtils {
     final String signTime = '${DateFormatter.formatYYYYMMDDTHHMMSS(now)}Z';
 
     // 3. 构建基础URL
-    final String host = '$bucket.$endpoint';
+    // 根据是否启用CNAME选择不同的域名构造方式
+    final String host = cname ? endpoint : '$bucket.$endpoint';
     final String path = '/$key';
     final Uri baseUri = Uri.parse('https://$host$path');
 

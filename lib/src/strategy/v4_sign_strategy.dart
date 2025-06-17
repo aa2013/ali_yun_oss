@@ -68,6 +68,7 @@ class AliOssV4SignStrategy implements IOSSSignStrategy {
       key: fileKey,
       uri: uri,
       headers: headers,
+      cname: _config.cname,
       securityToken: _config.securityToken,
       dateTime: dateTime,
     );
