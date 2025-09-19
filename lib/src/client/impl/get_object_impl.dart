@@ -153,7 +153,16 @@ mixin GetObjectImpl on IOSSService {
           onSendProgress: params?.onSendProgress,
         );
 
-        return response as Response<Stream<List<int>>>;
+        // return response as Response<Stream<List<int>>>;
+        return Response<Stream<List<int>>>(
+          data: (response.data as ResponseBody).stream,
+          statusCode: response.statusCode,
+          requestOptions: response.requestOptions,
+          isRedirect: response.isRedirect,
+          statusMessage: response.statusMessage,
+          extra: response.extra,
+          headers: response.headers,
+        );
       },
     );
   }

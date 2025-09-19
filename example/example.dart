@@ -699,6 +699,7 @@ Future<void> main() async {
     print('  8: 生成带自定义查询参数的签名 URL');
     print('  9: 自定义域名(CNAME)功能演示');
     print('  10: 删除文件功能演示');
+    print('  11: 流式下载文件');
     print('  q: 退出');
     stdout.write('请输入选项: ');
 
@@ -743,6 +744,9 @@ Future<void> main() async {
         break;
       case '10':
         await _runDeleteFileDemo();
+        break;
+      case '11':
+        await _downloadFileStream();
         break;
       case 'q':
       case 'Q':
@@ -790,5 +794,37 @@ Future<void> _runDeleteFileDemo() async {
     print('--- 删除成功 ---');
   }catch(e){
     print('删除失败 $e');
+  }
+}
+
+/// 下载文件（大文件）
+Future<void> _downloadFileStream()async{
+  try {
+    const String ossObjectKey = 'example/test_oss_put.txt'; // 要下载的文件
+    const String downloadPath = 'example/downloaded/example.txt'; // 保存路径
+
+    final Response<Stream<List<int>>> response = await oss.getObjectStream(
+      ossObjectKey,
+      params: OSSRequestParams(
+        onReceiveProgress: (int count, int total) {
+          // 避免除以零
+          if (total > 0) {
+            print('下载进度: ${(count / total * 100).toStringAsFixed(2)}%');
+          } else {
+            print('下载进度: $count bytes (总大小未知)');
+          }
+        },
+      ),
+    );
+
+    final File downloadFile = File(downloadPath);
+    // 确保目录存在
+    await downloadFile.parent.create(recursive: true);
+    final IOSink writer = downloadFile.openWrite();
+    writer.addStream(response.data!);
+
+    print('文件下载成功,保存路径: $downloadPath');
+  } catch (e) {
+    print('文件下载失败: $e');
   }
 }
