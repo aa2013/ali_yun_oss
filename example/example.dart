@@ -698,6 +698,7 @@ Future<void> main() async {
     print('  7: 生成签名 URL');
     print('  8: 生成带自定义查询参数的签名 URL');
     print('  9: 自定义域名(CNAME)功能演示');
+    print('  10: 删除文件功能演示');
     print('  q: 退出');
     stdout.write('请输入选项: ');
 
@@ -740,6 +741,9 @@ Future<void> main() async {
       case '9':
         await _runCnameDemo();
         break;
+      case '10':
+        await _runDeleteFileDemo();
+        break;
       case 'q':
       case 'Q':
         print('退出程序。');
@@ -777,4 +781,14 @@ Future<void> _runCnameDemo() async {
   }
 
   print('--- 示例 9 结束 ---');
+}
+
+/// 运行删除文件功能演示
+Future<void> _runDeleteFileDemo() async {
+  try{
+    await oss.deleteObject('example/test_oss_put.txt');
+    print('--- 删除成功 ---');
+  }catch(e){
+    print('删除失败 $e');
+  }
 }

@@ -13,6 +13,26 @@ typedef PartProgressCallback = void Function(
 mixin IOSSService {
   // -------------------- 基础操作 Section --------------------
 
+  /// 删除OSS对象
+  ///
+  /// 该方法用于从阿里云OSS删除指定的对象。
+  ///
+  /// 补充说明：
+  /// - 返回的响应体中包含文件内容的字节数组
+  /// - 可以通过 [params] 中的 [onReceiveProgress] 回调监控下载进度
+  /// - 对于大文件,建议使用流式下载或分片下载
+  /// - 如果文件不存在,将抛出 [OSSErrorType.notFound] 类型的异常
+  ///
+  /// 参数：
+  /// - [fileKey] 要删除的文件对象的键值（路径）
+  /// - [versionId] 可选的版本
+  /// - [params] 可选的请求参数,包含进度回调、超时设置等
+  Future<Response<dynamic>> deleteObject(
+    String fileKey, {
+    String? versionId,
+    OSSRequestParams? params,
+  });
+
   /// 获取OSS对象
   ///
   /// 该方法用于从阿里云OSS下载指定的文件对象。

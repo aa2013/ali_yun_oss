@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dart_aliyun_oss/src/client/impl/delete_object_impl.dart';
 import 'package:dart_aliyun_oss/src/config/config.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/interfaces/sign_strategy.dart';
@@ -80,7 +81,8 @@ class OSSClient
         ListPartsImpl,
         ListMultipartUploadsImpl,
         MultipartUploadImpl,
-        SignedUrlImpl {
+        SignedUrlImpl,
+        DeleteObjectImpl {
   //============================================================
   // 构造函数
   //============================================================
