@@ -166,6 +166,9 @@ enum OSSErrorType {
   /// 当使用 [multipartUpload] 方法时,如果任何分片上传失败,整个上传过程将被中止并抛出此错误。
   uploadPartFailed,
 
+  /// 解析响应失败
+  parseError,
+
   // 可以根据需要添加更多具体的错误类型
 }
 
@@ -206,6 +209,8 @@ extension OSSErrorTypeExtension on OSSErrorType {
         return '未知错误,请查看日志获取详情';
       case OSSErrorType.uploadPartFailed:
         return '上传分片失败,请重试';
+      case OSSErrorType.parseError:
+        return '响应解析失败';
     }
   }
 
@@ -231,6 +236,7 @@ extension OSSErrorTypeExtension on OSSErrorType {
       case OSSErrorType.requestCancelled:
       case OSSErrorType.signatureMismatch:
       case OSSErrorType.abortMultipartFailed:
+      case OSSErrorType.parseError:
       case OSSErrorType.unknown:
         return false;
     }

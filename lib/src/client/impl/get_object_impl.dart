@@ -2,6 +2,7 @@ import 'package:dart_aliyun_oss/src/client/client.dart';
 import 'package:dart_aliyun_oss/src/exceptions/exceptions.dart';
 import 'package:dart_aliyun_oss/src/interfaces/service.dart';
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dart_aliyun_oss/src/models/object_meta.dart';
 import 'package:dio/dio.dart';
 
 /// GetObjectImpl 是阿里云 OSS 获取对象操作的实现
@@ -78,8 +79,7 @@ mixin GetObjectImpl on IOSSService {
         responseType: ResponseType.bytes,
       );
 
-      final Response<dynamic> response =
-          await client.requestHandler.sendRequest(
+      final Response<dynamic> response = await client.requestHandler.sendRequest(
         uri: uri,
         method: 'GET',
         options: requestOptions,
@@ -89,6 +89,91 @@ mixin GetObjectImpl on IOSSService {
       );
 
       return response;
+    });
+  }
+
+  /// 获取OSS对象元数据信息
+  ///
+  /// 该方法用于从阿里云OSS获取指定的对象元数据信息。
+  ///
+  /// 参数：
+  /// - [fileKey] 要下载的文件对象的键值（路径）
+  /// - [params] 可选的请求参数,包含进度回调、超时设置等
+  @override
+  Future<ObjectMeta?> getObjectMeta(
+    String fileKey, {
+    OSSRequestParams? params,
+  }) {
+    // 参数验证
+    if (fileKey.isEmpty) {
+      throw const OSSException(
+        type: OSSErrorType.invalidArgument,
+        message: 'File key 不能为空',
+      );
+    }
+
+    final OSSClient client = this as OSSClient;
+
+    return client.requestHandler.executeRequest(fileKey, params?.cancelToken, (
+      CancelToken cancelToken,
+    ) async {
+      // 更新请求参数
+      OSSRequestParams updatedParams = params ?? const OSSRequestParams();
+      final Map<String, dynamic> queryParameters = updatedParams.queryParameters ?? <String, dynamic>{};
+      queryParameters['objectMeta'] = '';
+      updatedParams = updatedParams.copyWith(queryParameters: queryParameters);
+
+      final Uri uri = client.buildOssUri(
+        bucket: updatedParams.bucketName,
+        fileKey: fileKey,
+        queryParameters: updatedParams.queryParameters,
+      );
+      final Map<String, dynamic> baseHeaders = <String, dynamic>{
+        ...?updatedParams.options?.headers, // 使用空安全展开运算符
+      };
+
+      // Access private method via the casted client instance
+      final Map<String, dynamic> headers = client.createSignedHeaders(
+        method: 'GET',
+        fileKey: fileKey,
+        baseHeaders: baseHeaders,
+        params: updatedParams,
+      );
+
+      final Options requestOptions = (params?.options ?? Options()).copyWith(
+        headers: headers,
+        responseType: ResponseType.stream,
+        validateStatus: (int? status) {
+          status = status ?? 0;
+          return status == 404 || (status >= 200 && status < 300);
+        },
+      );
+
+      final Response<dynamic> response = await client.requestHandler.sendRequest(
+        uri: uri,
+        method: 'GET',
+        options: requestOptions,
+        cancelToken: cancelToken,
+        onReceiveProgress: params?.onReceiveProgress,
+        onSendProgress: params?.onSendProgress,
+      );
+      if (response.statusCode == 404) {
+        //对象不存在
+        return null;
+      }
+      try {
+        final String length = response.headers.value(Headers.contentLengthHeader)!;
+        return ObjectMeta(
+          contentLength: int.parse(length),
+          eTag: response.headers.value('ETag')!,
+          transitionTime: response.headers.value('x-oss-transition-time'),
+          lastAccessTime: response.headers.value('x-oss-last-access-time'),
+          lastModified: response.headers.value('Last-Modified')!,
+          versionId: response.headers.value('x-oss-version-id'),
+        );
+      } catch (err, stack) {
+        return null;
+      }
     });
   }
 
@@ -116,8 +201,7 @@ mixin GetObjectImpl on IOSSService {
       params?.cancelToken,
       (CancelToken cancelToken) async {
         // 更新请求参数
-        final OSSRequestParams updatedParams =
-            params ?? const OSSRequestParams();
+        final OSSRequestParams updatedParams = params ?? const OSSRequestParams();
 
         final Uri uri = client.buildOssUri(
           bucket: updatedParams.bucketName,
@@ -143,8 +227,7 @@ mixin GetObjectImpl on IOSSService {
           responseType: ResponseType.stream,
         );
 
-        final Response<dynamic> response =
-            await client.requestHandler.sendRequest(
+        final Response<dynamic> response = await client.requestHandler.sendRequest(
           uri: uri,
           method: 'GET',
           options: requestOptions,

@@ -40,11 +40,14 @@ mixin DeleteObjectImpl on IOSSService {
       CancelToken cancelToken,
     ) async {
       // 更新请求参数
-      final OSSRequestParams updatedParams = params ?? const OSSRequestParams();
-      final Map<String, dynamic> queryParameters = updatedParams.queryParameters??<String, dynamic>{};
-      if(versionId!=null) {
+      OSSRequestParams updatedParams = params ?? const OSSRequestParams();
+      final Map<String, dynamic> queryParameters = updatedParams.queryParameters ?? <String, dynamic>{};
+      if (versionId != null) {
         queryParameters['versionId'] = versionId;
       }
+
+      updatedParams = updatedParams.copyWith(queryParameters: queryParameters);
+
       final Uri uri = client.buildOssUri(
         bucket: updatedParams.bucketName,
         fileKey: fileKey,

@@ -16,6 +16,7 @@ import 'impl/complete_multipart_upload_impl.dart';
 import 'impl/get_object_impl.dart';
 import 'impl/initiate_multipart_upload_impl.dart';
 import 'impl/list_multipart_uploads_impl.dart';
+import 'impl/list_objects_v2_impl.dart';
 import 'impl/list_parts_impl.dart';
 import 'impl/multipart_upload_impl.dart';
 import 'impl/put_object_impl.dart';
@@ -82,7 +83,8 @@ class OSSClient
         ListMultipartUploadsImpl,
         MultipartUploadImpl,
         SignedUrlImpl,
-        DeleteObjectImpl {
+        DeleteObjectImpl,
+        ListBucketResultImpl {
   //============================================================
   // 构造函数
   //============================================================

@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_aliyun_oss/dart_aliyun_oss.dart';
+import 'package:dart_aliyun_oss/src/models/list_bucket_result_v2.dart';
+import 'package:dart_aliyun_oss/src/models/object_meta.dart';
 import 'package:dio/dio.dart';
 
 import 'config.dart'; // 导入配置文件
@@ -172,8 +174,7 @@ Future<void> _runDownloadExample() async {
 Future<void> _runMultipartUploadExample() async {
   print('\n--- 运行示例 3: 分片上传 (使用封装方法) ---');
   const String localFilePath = 'example/assets/large_file.bin'; // 本地文件路径
-  const String ossObjectKey =
-      'example/multipart_upload_example.bin'; // 上传到 OSS 的路径
+  const String ossObjectKey = 'example/multipart_upload_example.bin'; // 上传到 OSS 的路径
 
   // 记录开始时间
   final DateTime startTime = DateTime.now();
@@ -189,8 +190,7 @@ Future<void> _runMultipartUploadExample() async {
     print('开始分片上传 (封装方法): $localFilePath -> $ossObjectKey');
 
     // --- 调用封装后的 multipartUpload 方法 ---
-    final Response<CompleteMultipartUploadResult> completeResponse =
-        await oss.multipartUpload(
+    final Response<CompleteMultipartUploadResult> completeResponse = await oss.multipartUpload(
       file,
       ossObjectKey,
       // numberOfParts: 5, // 可选：传入期望的分片数
@@ -220,9 +220,7 @@ Future<void> _runMultipartUploadExample() async {
     print('  OSS ETag: ${completeResponse.data?.eTag}');
 
     // 获取并打印实际使用的分片数量
-    final String? actualPartsCount = completeResponse.data?.eTag
-        .split('-')
-        .lastOrNull; // eTag 格式通常为 "xxx-N",其中 N 为分片数量
+    final String? actualPartsCount = completeResponse.data?.eTag.split('-').lastOrNull; // eTag 格式通常为 "xxx-N",其中 N 为分片数量
     if (actualPartsCount != null) {
       print('  实际分片数量: $actualPartsCount');
     }
@@ -314,8 +312,7 @@ Future<void> _runListMultipartUploadsExample() async {
   try {
     print('尝试列出存储桶中所有进行中的分片上传...');
     // 可以添加过滤和分页参数: prefix, delimiter, keyMarker, uploadIdMarker, maxUploads
-    final Response<ListMultipartUploadsResult> response =
-        await oss.listMultipartUploads(
+    final Response<ListMultipartUploadsResult> response = await oss.listMultipartUploads(
       // prefix: 'example/', // 可选：只列出指定前缀的
       // maxUploads: 5, // 可选：限制返回数量
       params: OSSRequestParams(
@@ -581,9 +578,7 @@ class StsTokenManager {
 
   /// 检查是否需要刷新令牌，如果需要则自动刷新
   void _refreshIfNeeded() {
-    if (_expireTime == null ||
-        DateTime.now()
-            .isAfter(_expireTime!.subtract(const Duration(minutes: 5)))) {
+    if (_expireTime == null || DateTime.now().isAfter(_expireTime!.subtract(const Duration(minutes: 5)))) {
       _refreshStsToken();
     }
   }
@@ -596,12 +591,9 @@ class StsTokenManager {
 
     // 模拟调用STS服务获取新令牌
     // 在实际应用中，您需要替换为真实的STS API调用
-    _accessKeyId =
-        'STS.mock_access_key_id_${DateTime.now().millisecondsSinceEpoch}';
-    _accessKeySecret =
-        'mock_access_key_secret_${DateTime.now().millisecondsSinceEpoch}';
-    _securityToken =
-        'mock_security_token_${DateTime.now().millisecondsSinceEpoch}';
+    _accessKeyId = 'STS.mock_access_key_id_${DateTime.now().millisecondsSinceEpoch}';
+    _accessKeySecret = 'mock_access_key_secret_${DateTime.now().millisecondsSinceEpoch}';
+    _securityToken = 'mock_security_token_${DateTime.now().millisecondsSinceEpoch}';
     _expireTime = DateTime.now().add(const Duration(hours: 1)); // 假设令牌1小时后过期
 
     print('✅ STS令牌刷新完成，过期时间: $_expireTime');
@@ -700,6 +692,8 @@ Future<void> main() async {
     print('  9: 自定义域名(CNAME)功能演示');
     print('  10: 删除文件功能演示');
     print('  11: 流式下载文件');
+    print('  12: 获取bucket文件列表');
+    print('  13: 获取对象元数据');
     print('  q: 退出');
     stdout.write('请输入选项: ');
 
@@ -748,6 +742,12 @@ Future<void> main() async {
       case '11':
         await _downloadFileStream();
         break;
+      case '12':
+        await _listBucketObjects();
+        break;
+      case '13':
+        await _getObjectMeta();
+        break;
       case 'q':
       case 'Q':
         print('退出程序。');
@@ -789,16 +789,16 @@ Future<void> _runCnameDemo() async {
 
 /// 运行删除文件功能演示
 Future<void> _runDeleteFileDemo() async {
-  try{
+  try {
     await oss.deleteObject('example/test_oss_put.txt');
     print('--- 删除成功 ---');
-  }catch(e){
+  } catch (e) {
     print('删除失败 $e');
   }
 }
 
 /// 下载文件（大文件）
-Future<void> _downloadFileStream()async{
+Future<void> _downloadFileStream() async {
   try {
     const String ossObjectKey = 'example/test_oss_put.txt'; // 要下载的文件
     const String downloadPath = 'example/downloaded/example.txt'; // 保存路径
@@ -827,4 +827,50 @@ Future<void> _downloadFileStream()async{
   } catch (e) {
     print('文件下载失败: $e');
   }
+}
+
+/// 获取bucket文件列表
+Future<void> _listBucketObjects() async {
+  try {
+    // 若不设置 delimiter 为 '/' 将会递归获取
+    // 获取 example 目录下的内容
+    // 将startAfter 设置为与 prefix 一致可以让返回结果跳过父级目录
+    final Response<ListBucketResultV2> result = await oss.listBucketResultV2(
+      prefix: 'test/',
+      startAfter: 'test/',
+      maxKeys: 2,
+      /*continuationToken: 'Cgp0ZXN0LzEudHh0EAA-'*/
+    );
+    final ListBucketResultV2 resultV2 = result.data!;
+    print('公共父级目录：${resultV2.prefix}');
+    print('分隔符 ${resultV2.delimiter}');
+    print('是否还有后续内容：${resultV2.isTruncated}');
+    print('后续内容的起始获取token：${resultV2.nextContinuationToken}');
+    if (resultV2.commonPrefixes.isNotEmpty) {
+      print('目录列表：');
+      for (final CommonPrefixes commonPrefix in resultV2.commonPrefixes) {
+        print(commonPrefix.prefix);
+      }
+    }
+    if (resultV2.contents.isNotEmpty) {
+      print('文件列表:');
+      for (final Contents content in resultV2.contents) {
+        print('key = ${content.key}, size = ${content.size}');
+      }
+    }
+  } catch (e) {
+    print('获取bucket文件列表失败: $e');
+  }
+}
+
+/// 获取对象元数据
+Future<void> _getObjectMeta() async {
+  try {
+    const String fileKey = 'example/test_oss_put.txt';
+    final ObjectMeta? object = await oss.getObjectMeta(fileKey);
+    print('object: $object');
+  } catch (err) {
+    print('获取对象元数据失败: $err');
+  }
+  return;
 }

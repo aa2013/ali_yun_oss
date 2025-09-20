@@ -1,7 +1,10 @@
 import 'dart:io';
 
 import 'package:dart_aliyun_oss/src/models/models.dart';
+import 'package:dart_aliyun_oss/src/models/object_meta.dart';
 import 'package:dio/dio.dart';
+
+import '../models/list_bucket_result_v2.dart';
 
 // 定义回调类型 (如果尚未定义)
 typedef PartProgressCallback = void Function(
@@ -47,6 +50,18 @@ mixin IOSSService {
   /// - [fileKey] 要下载的文件对象的键值（路径）
   /// - [params] 可选的请求参数,包含进度回调、超时设置等
   Future<Response<dynamic>> getObject(
+    String fileKey, {
+    OSSRequestParams? params,
+  });
+
+  /// 获取OSS对象元数据信息
+  ///
+  /// 该方法用于从阿里云OSS获取指定的对象元数据信息。
+  ///
+  /// 参数：
+  /// - [fileKey] 要下载的文件对象的键值（路径）
+  /// - [params] 可选的请求参数,包含进度回调、超时设置等
+  Future<ObjectMeta?> getObjectMeta(
     String fileKey, {
     OSSRequestParams? params,
   });
@@ -299,4 +314,85 @@ mixin IOSSService {
   });
 
   // -------------------- 分片上传 Section End --------------------
+
+  /// 列举Bucket中的Object列表（V2版本）
+  ///
+  /// 此方法实现了ListObjectsV2（GetBucketV2）接口，用于分页列举Bucket中的Object。
+  /// 可以通过各种参数来控制返回结果的范围和格式。
+  ///
+  /// 参数说明：
+  ///   - [delimiter]: 对Object名字进行分组的字符。所有Object名字包含指定的前缀，
+  ///     第一次出现delimiter字符之间的Object作为一组元素（即CommonPrefixes）。
+  ///     默认值：无
+  ///     示例：设置为"/"可以模拟文件夹结构
+  ///
+  ///   - [startAfter]: 设定从startAfter之后按字母排序开始返回Object。
+  ///     startAfter用来实现分页显示效果，参数的长度必须小于1024字节。
+  ///     做条件查询时，即使startAfter在列表中不存在，也会从符合startAfter字母排序的下一个开始打印。
+  ///     默认值：无
+  ///
+  ///   - [continuationToken]: 指定List操作需要从此token开始。
+  ///     您可从ListObjectsV2（GetBucketV2）结果中的NextContinuationToken获取此token。
+  ///     默认值：无
+  ///
+  ///   - [maxKeys]: 指定返回Object的最大数。
+  ///     取值：大于0小于等于1000
+  ///     默认值：100
+  ///     说明：
+  ///     1. 如果因为maxKeys的设定无法一次完成列举，返回结果会附加NextContinuationToken
+  ///        作为下一次列举的continuationToken。
+  ///     2. 返回的Object数量不保证达到设定的maxKeys。出现这种情况时，需要从返回结果中
+  ///        获取NextContinuationToken作为下一次列举的continuationToken。
+  ///
+  ///   - [prefix]: 限定返回文件的Key必须以prefix作为前缀。
+  ///     如果把prefix设为某个文件夹名，则列举以此prefix开头的文件，即该文件夹下递归的所有文件和子文件夹。
+  ///     在设置prefix的基础上，将delimiter设置为正斜线（/）时，返回值就只列举该文件夹下的文件，
+  ///     文件夹下的子文件夹名返回在CommonPrefixes中，子文件夹下递归的所有文件和文件夹不显示。
+  ///     示例：
+  ///     一个Bucket中有三个Object，分别为fun/test.jpg、fun/movie/001.avi和fun/movie/007.avi。
+  ///     如果设定prefix为fun/，则返回三个Object；
+  ///     如果在prefix设置为fun/的基础上，将delimiter设置为正斜线（/），
+  ///     则返回fun/test.jpg和fun/movie/。
+  ///     说明：
+  ///     1. 参数的长度必须小于1024字节。
+  ///     2. 设置prefix参数时，不能以正斜线（/）开头。
+  ///     3. 如果prefix参数置空，则默认列举Bucket内的所有Object。
+  ///     4. 使用prefix查询时，返回的Key中仍会包含prefix。
+  ///     默认值：无
+  ///
+  ///   - [fetchOwner]: 指定是否在返回结果中包含owner信息。
+  ///     合法值：true、false
+  ///     true：表示返回结果中包含owner信息。
+  ///     false：表示返回结果中不包含owner信息。
+  ///     默认值：false
+  ///
+  /// 返回值：
+  ///   返回[Future<ListBucketResultV2>]，包含列举结果和分页信息。
+  ///
+  /// 异常：
+  ///   可能会抛出以下异常：
+  ///   - [ArgumentError] 当参数不符合要求时
+  ///   - [ServiceException] 当服务端返回错误时
+  ///   - [NetworkException] 当网络连接出现问题时
+  ///
+  /// 示例：
+  /// ```dart
+  /// final result = await listBucketResultV2(
+  ///   delimiter: '/',
+  ///   maxKeys: 100,
+  ///   prefix: 'photos/',
+  ///   fetchOwner: true,
+  /// );
+  /// print('Objects: ${result.contents?.length}');
+  /// print('Common prefixes: ${result.commonPrefixes?.length}');
+  /// ```
+  Future<Response<ListBucketResultV2>> listBucketResultV2({
+    String? delimiter,
+    String? startAfter,
+    String? continuationToken,
+    int? maxKeys,
+    String? prefix,
+    bool fetchOwner = false,
+    OSSRequestParams? params,
+  });
 }
